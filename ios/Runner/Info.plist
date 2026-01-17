@@ -14,6 +14,8 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>olu_ai</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Olu AI needs access to the microphone to record patient consultations for transcription.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

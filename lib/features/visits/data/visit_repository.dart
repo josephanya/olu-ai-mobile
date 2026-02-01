@@ -1,44 +1,36 @@
-import 'package:isar/isar.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:olu_ai/core/database/isar_database.dart';
-import 'package:olu_ai/features/visits/data/visit_model.dart';
-
-part 'visit_repository.g.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:olu_ai/core/database/database.dart';
 
 class VisitRepository {
-  final Isar isar;
+  final AppDatabase db;
 
-  VisitRepository(this.isar);
+  VisitRepository(this.db);
 
   Future<List<Visit>> getVisitsForPatient(int patientId) async {
-    return isar.visits.where().patientIdEqualTo(patientId).findAll();
+    return await (db.select(db.visits)
+          ..where((t) => t.patientId.equals(patientId)))
+        .get();
   }
 
   Future<Visit?> getVisit(int id) async {
-    return isar.visits.get(id);
+    return await (db.select(db.visits)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
   }
 
-  Future<void> addVisit(Visit visit) async {
-    await isar.writeTxn(() async {
-      await isar.visits.put(visit);
-    });
+  Future<int> addVisit(VisitsCompanion visit) async {
+    return await db.into(db.visits).insert(visit);
   }
 
-  Future<void> updateVisit(Visit visit) async {
-    await isar.writeTxn(() async {
-      await isar.visits.put(visit);
-    });
+  Future<void> updateVisit(VisitsCompanion visit) async {
+    await db.update(db.visits).replace(visit);
   }
 
   Future<void> deleteVisit(int id) async {
-    await isar.writeTxn(() async {
-      await isar.visits.delete(id);
-    });
+    await (db.delete(db.visits)..where((t) => t.id.equals(id))).go();
   }
 }
 
-@riverpod
-Future<VisitRepository> visitRepository(VisitRepositoryRef ref) async {
-  final isar = await ref.watch(isarDatabaseProvider.future);
-  return VisitRepository(isar);
-}
+final visitRepositoryProvider = FutureProvider<VisitRepository>((ref) async {
+  final db = ref.watch(databaseProvider);
+  return VisitRepository(db);
+});

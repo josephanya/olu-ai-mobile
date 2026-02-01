@@ -1,47 +1,40 @@
-import 'dart:io';
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isar/isar.dart';
-import 'package:olu_ai/features/visits/data/visit_model.dart';
+import 'package:olu_ai/core/database/database.dart';
 import 'package:olu_ai/features/visits/data/visit_repository.dart';
+import 'package:drift/drift.dart' as drift;
 
 void main() {
-  late Isar isar;
+  late AppDatabase db;
   late VisitRepository repository;
 
-  setUp(() async {
-    await Isar.initializeIsarCore(download: true);
-    isar = await Isar.open(
-      [VisitSchema],
-      directory: Directory.systemTemp.createTempSync().path,
-    );
-    repository = VisitRepository(isar);
+  setUp(() {
+    db = AppDatabase(NativeDatabase.memory());
+    repository = VisitRepository(db);
   });
 
   tearDown(() async {
-    await isar.close(deleteFromDisk: true);
+    await db.close();
   });
 
   test('addVisit adds a visit to the database', () async {
-    final visit = Visit()
-      ..patientId = 1
-      ..audioPath = '/path/to/audio.m4a'
-      ..transcript = 'Test transcript';
+    final visit = VisitsCompanion.insert(
+      patientId: 1,
+      audioPath: const drift.Value('/path/to/audio.m4a'),
+      transcript: const drift.Value('Test transcript'),
+    );
 
-    await repository.addVisit(visit);
+    final id = await repository.addVisit(visit);
 
-    final savedVisit = await repository.getVisit(visit.id);
+    final savedVisit = await repository.getVisit(id);
     expect(savedVisit, isNotNull);
     expect(savedVisit!.transcript, 'Test transcript');
   });
 
   test('getVisitsForPatient returns visits for specific patient', () async {
-    final visit1 = Visit()..patientId = 1;
-    final visit2 = Visit()..patientId = 2;
-    final visit3 = Visit()..patientId = 1;
-
-    await repository.addVisit(visit1);
-    await repository.addVisit(visit2);
-    await repository.addVisit(visit3);
+    await repository.addVisit(VisitsCompanion.insert(patientId: 1));
+    await repository.addVisit(VisitsCompanion.insert(patientId: 2));
+    await repository.addVisit(VisitsCompanion.insert(patientId: 1));
 
     final visits = await repository.getVisitsForPatient(1);
     expect(visits.length, 2);

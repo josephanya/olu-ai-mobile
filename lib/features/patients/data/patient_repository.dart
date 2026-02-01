@@ -1,44 +1,35 @@
-import 'package:isar/isar.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:olu_ai/core/database/isar_database.dart';
-import 'package:olu_ai/features/patients/data/patient_model.dart';
-
-part 'patient_repository.g.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:olu_ai/core/database/database.dart';
 
 class PatientRepository {
-  final Isar isar;
+  final AppDatabase db;
 
-  PatientRepository(this.isar);
+  PatientRepository(this.db);
 
   Future<List<Patient>> getAllPatients() async {
-    return isar.patients.where().findAll();
+    return await db.select(db.patients).get();
   }
 
   Future<Patient?> getPatient(int id) async {
-    return isar.patients.get(id);
+    return await (db.select(db.patients)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
   }
 
-  Future<void> addPatient(Patient patient) async {
-    await isar.writeTxn(() async {
-      await isar.patients.put(patient);
-    });
+  Future<int> addPatient(PatientsCompanion patient) async {
+    return await db.into(db.patients).insert(patient);
   }
 
-  Future<void> updatePatient(Patient patient) async {
-    await isar.writeTxn(() async {
-      await isar.patients.put(patient);
-    });
+  Future<void> updatePatient(PatientsCompanion patient) async {
+    await db.update(db.patients).replace(patient);
   }
 
   Future<void> deletePatient(int id) async {
-    await isar.writeTxn(() async {
-      await isar.patients.delete(id);
-    });
+    await (db.delete(db.patients)..where((t) => t.id.equals(id))).go();
   }
 }
 
-@riverpod
-Future<PatientRepository> patientRepository(PatientRepositoryRef ref) async {
-  final isar = await ref.watch(isarDatabaseProvider.future);
-  return PatientRepository(isar);
-}
+final patientRepositoryProvider =
+    FutureProvider<PatientRepository>((ref) async {
+  final db = ref.watch(databaseProvider);
+  return PatientRepository(db);
+});

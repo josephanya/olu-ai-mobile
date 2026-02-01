@@ -3,21 +3,21 @@
   "packages": [
     {
       "name": "_fe_analyzer_shared",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/_fe_analyzer_shared-61.0.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/_fe_analyzer_shared-67.0.0",
       "packageUri": "lib/",
-      "languageVersion": "2.17"
+      "languageVersion": "3.0"
     },
     {
       "name": "analyzer",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/analyzer-5.13.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/analyzer-6.4.1",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.0"
     },
     {
       "name": "analyzer_plugin",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/analyzer_plugin-0.11.2",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/analyzer_plugin-0.11.3",
       "packageUri": "lib/",
-      "languageVersion": "2.17"
+      "languageVersion": "3.0"
     },
     {
       "name": "args",
@@ -27,15 +27,15 @@
     },
     {
       "name": "async",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/async-2.11.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/async-2.13.0",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.4"
     },
     {
       "name": "boolean_selector",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/boolean_selector-2.1.1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/boolean_selector-2.1.2",
       "packageUri": "lib/",
-      "languageVersion": "2.17"
+      "languageVersion": "3.1"
     },
     {
       "name": "build",
@@ -51,9 +51,9 @@
     },
     {
       "name": "build_daemon",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/build_daemon-4.0.4",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/build_daemon-4.1.1",
       "packageUri": "lib/",
-      "languageVersion": "3.6"
+      "languageVersion": "3.7"
     },
     {
       "name": "build_resolvers",
@@ -87,31 +87,49 @@
     },
     {
       "name": "characters",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/characters-1.3.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/characters-1.4.0",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "charcode",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/charcode-1.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "checked_yaml",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/checked_yaml-2.0.3",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/checked_yaml-2.0.4",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.8"
+    },
+    {
+      "name": "cli_config",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/cli_config-0.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "cli_util",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/cli_util-0.4.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "clock",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/clock-1.1.1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/clock-1.1.2",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.4"
     },
     {
       "name": "code_builder",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/code_builder-4.10.1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/code_builder-4.11.1",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "3.7"
     },
     {
       "name": "collection",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/collection-1.19.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/collection-1.19.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -134,40 +152,46 @@
       "languageVersion": "3.1"
     },
     {
-      "name": "custom_lint_core",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/custom_lint_core-0.6.3",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
       "name": "dart_style",
       "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/dart_style-2.3.2",
       "packageUri": "lib/",
       "languageVersion": "2.19"
     },
     {
-      "name": "dartx",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/dartx-1.2.0",
+      "name": "drift",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/drift-2.21.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "drift_dev",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/drift_dev-2.21.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "equatable",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/equatable-2.0.8",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
     {
       "name": "fake_async",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/fake_async-1.3.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "ffi",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/ffi-2.1.3",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/fake_async-1.3.3",
       "packageUri": "lib/",
       "languageVersion": "3.3"
     },
     {
-      "name": "file",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/file-6.1.4",
+      "name": "ffi",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/ffi-2.1.5",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "file",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/file-7.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "fixnum",
@@ -179,7 +203,7 @@
       "name": "flutter",
       "rootUri": "file:///Users/josephanya/SDKs/flutter/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.8"
     },
     {
       "name": "flutter_lints",
@@ -197,13 +221,13 @@
       "name": "flutter_test",
       "rootUri": "file:///Users/josephanya/SDKs/flutter/packages/flutter_test",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.8"
     },
     {
       "name": "flutter_web_plugins",
       "rootUri": "file:///Users/josephanya/SDKs/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.8"
     },
     {
       "name": "freezed",
@@ -266,24 +290,6 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "isar",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/isar-3.1.0+1",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
-      "name": "isar_flutter_libs",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/isar_flutter_libs-3.1.0+1",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
-      "name": "isar_generator",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/isar_generator-3.1.0+1",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
       "name": "js",
       "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/js-0.6.7",
       "packageUri": "lib/",
@@ -303,19 +309,19 @@
     },
     {
       "name": "leak_tracker",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/leak_tracker-10.0.7",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/leak_tracker-11.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
     {
       "name": "leak_tracker_flutter_testing",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/leak_tracker_flutter_testing-3.0.8",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/leak_tracker_flutter_testing-3.0.10",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
     {
       "name": "leak_tracker_testing",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/leak_tracker_testing-3.0.1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/leak_tracker_testing-3.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -326,6 +332,12 @@
       "languageVersion": "3.6"
     },
     {
+      "name": "llama_cpp_dart",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/llama_cpp_dart-0.0.9",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "logging",
       "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/logging-1.3.0",
       "packageUri": "lib/",
@@ -333,9 +345,9 @@
     },
     {
       "name": "matcher",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/matcher-0.12.16+1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/matcher-0.12.17",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.4"
     },
     {
       "name": "material_color_utilities",
@@ -344,16 +356,40 @@
       "languageVersion": "2.17"
     },
     {
-      "name": "meta",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/meta-1.15.0",
+      "name": "mediapipe_core",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/mediapipe_core-0.0.1",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "mediapipe_genai",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/mediapipe_genai-0.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "meta",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/meta-1.17.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
     },
     {
       "name": "mime",
       "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/mime-2.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
+    },
+    {
+      "name": "native_assets_cli",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/native_assets_cli-0.3.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "native_toolchain_c",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/native_toolchain_c-0.3.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
     },
     {
       "name": "package_config",
@@ -363,9 +399,9 @@
     },
     {
       "name": "path",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/path-1.9.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.4"
     },
     {
       "name": "path_provider",
@@ -375,15 +411,15 @@
     },
     {
       "name": "path_provider_android",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/path_provider_android-2.2.17",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/path_provider_android-2.2.22",
       "packageUri": "lib/",
-      "languageVersion": "3.6"
+      "languageVersion": "3.9"
     },
     {
       "name": "path_provider_foundation",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/path_provider_foundation-2.4.1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/path_provider_foundation-2.5.1",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.9"
     },
     {
       "name": "path_provider_linux",
@@ -458,12 +494,6 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "process",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/process-4.2.4",
-      "packageUri": "lib/",
-      "languageVersion": "2.14"
-    },
-    {
       "name": "pub_semver",
       "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/pub_semver-2.2.0",
       "packageUri": "lib/",
@@ -476,44 +506,50 @@
       "languageVersion": "3.6"
     },
     {
+      "name": "recase",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/recase-4.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "record",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record-6.1.2",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record-6.2.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "record_android",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_android-1.4.5",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_android-1.5.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "record_ios",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_ios-1.1.5",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_ios-1.2.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "record_linux",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_linux-1.2.1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_linux-1.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "record_macos",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_macos-1.1.2",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_macos-1.2.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "record_platform_interface",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_platform_interface-1.4.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_platform_interface-1.5.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "record_web",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_web-1.2.2",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/record_web-1.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
@@ -526,24 +562,6 @@
     {
       "name": "riverpod",
       "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/riverpod-2.6.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
-      "name": "riverpod_analyzer_utils",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/riverpod_analyzer_utils-0.5.1",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "riverpod_annotation",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/riverpod_annotation-2.6.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
-      "name": "riverpod_generator",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/riverpod_generator-2.4.0",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
@@ -599,7 +617,7 @@
       "name": "sky_engine",
       "rootUri": "file:///Users/josephanya/SDKs/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.8"
     },
     {
       "name": "source_gen",
@@ -615,13 +633,31 @@
     },
     {
       "name": "source_span",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/source_span-1.10.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/source_span-1.10.1",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "sqlite3",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/sqlite3-2.9.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "sqlite3_flutter_libs",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/sqlite3_flutter_libs-0.5.41",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "sqlparser",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/sqlparser-0.39.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "stack_trace",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/stack_trace-1.12.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/stack_trace-1.12.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -633,9 +669,9 @@
     },
     {
       "name": "stream_channel",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/stream_channel-2.1.2",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/stream_channel-2.1.4",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.3"
     },
     {
       "name": "stream_transform",
@@ -645,27 +681,21 @@
     },
     {
       "name": "string_scanner",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/string_scanner-1.3.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/string_scanner-1.4.1",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
     {
       "name": "term_glyph",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/term_glyph-1.2.1",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/term_glyph-1.2.2",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.1"
     },
     {
       "name": "test_api",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/test_api-0.7.3",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/test_api-0.7.7",
       "packageUri": "lib/",
-      "languageVersion": "3.4"
-    },
-    {
-      "name": "time",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/time-2.1.6",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.5"
     },
     {
       "name": "timing",
@@ -680,6 +710,12 @@
       "languageVersion": "3.5"
     },
     {
+      "name": "typed_isolate",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/typed_isolate-6.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
       "name": "uuid",
       "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/uuid-4.5.2",
       "packageUri": "lib/",
@@ -687,15 +723,15 @@
     },
     {
       "name": "vector_math",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/vector_math-2.1.4",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/vector_math-2.2.0",
       "packageUri": "lib/",
-      "languageVersion": "2.14"
+      "languageVersion": "3.1"
     },
     {
       "name": "vm_service",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/vm_service-14.3.0",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/vm_service-15.0.2",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.5"
     },
     {
       "name": "watcher",
@@ -723,15 +759,9 @@
     },
     {
       "name": "xdg_directories",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/xdg_directories-0.2.0+3",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/xdg_directories-1.1.0",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "xxh3",
-      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/xxh3-1.2.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.16"
+      "languageVersion": "3.3"
     },
     {
       "name": "yaml",
@@ -740,16 +770,21 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "yaml_edit",
+      "rootUri": "file:///Users/josephanya/.pub-cache/hosted/pub.dev/yaml_edit-2.2.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
       "name": "olu_ai",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2026-01-17T11:50:05.666006Z",
   "generator": "pub",
-  "generatorVersion": "3.6.0",
+  "generatorVersion": "3.10.7",
   "flutterRoot": "file:///Users/josephanya/SDKs/flutter",
-  "flutterVersion": "3.27.1",
+  "flutterVersion": "3.38.7",
   "pubCache": "file:///Users/josephanya/.pub-cache"
 }

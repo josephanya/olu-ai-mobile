@@ -1,0 +1,546 @@
+{
+  "elements": {
+    "AppDatabase": {
+      "id": {
+        "library_uri": "package:olu_ai/core/database/database.dart",
+        "name": "AppDatabase"
+      },
+      "declaration": {
+        "source_uri": "package:olu_ai/core/database/database.dart",
+        "offset": 1442,
+        "name": "AppDatabase"
+      },
+      "references": [
+        {
+          "library_uri": "package:olu_ai/core/database/database.dart",
+          "name": "patients"
+        },
+        {
+          "library_uri": "package:olu_ai/core/database/database.dart",
+          "name": "visits"
+        }
+      ],
+      "type": "database",
+      "tables": [
+        {
+          "library_uri": "package:olu_ai/core/database/database.dart",
+          "name": "patients"
+        },
+        {
+          "library_uri": "package:olu_ai/core/database/database.dart",
+          "name": "visits"
+        }
+      ],
+      "views": [],
+      "includes": [],
+      "queries": [],
+      "schema_version": 1,
+      "daos": []
+    },
+    "patients": {
+      "id": {
+        "library_uri": "package:olu_ai/core/database/database.dart",
+        "name": "patients"
+      },
+      "declaration": {
+        "source_uri": "package:olu_ai/core/database/database.dart",
+        "offset": 268,
+        "name": "Patients"
+      },
+      "references": [],
+      "type": "table",
+      "columns": [
+        {
+          "sqlType": {
+            "builtin": "int"
+          },
+          "nullable": false,
+          "nameInSql": "id",
+          "nameInDart": "id",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 309,
+            "name": "id"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [
+            {
+              "type": "primary",
+              "is_auto_increment": true
+            }
+          ],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": false,
+          "nameInSql": "first_name",
+          "nameInDart": "firstName",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 361,
+            "name": "firstName"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": false,
+          "nameInSql": "last_name",
+          "nameInDart": "lastName",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 401,
+            "name": "lastName"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": true,
+          "nameInSql": "date_of_birth",
+          "nameInDart": "dateOfBirth",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 444,
+            "name": "dateOfBirth"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "gender",
+          "nameInDart": "gender",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 501,
+            "name": "gender"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "phone_number",
+          "nameInDart": "phoneNumber",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 549,
+            "name": "phoneNumber"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "village",
+          "nameInDart": "village",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 602,
+            "name": "village"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": false,
+          "nameInSql": "created_at",
+          "nameInDart": "createdAt",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 655,
+            "name": "createdAt"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": {
+            "elements": [
+              {
+                "lexeme": "currentDateAndTime",
+                "import_uri": "package:drift/src/runtime/query_builder/query_builder.dart"
+              }
+            ]
+          },
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": false,
+          "nameInSql": "updated_at",
+          "nameInDart": "updatedAt",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 735,
+            "name": "updatedAt"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": {
+            "elements": [
+              {
+                "lexeme": "currentDateAndTime",
+                "import_uri": "package:drift/src/runtime/query_builder/query_builder.dart"
+              }
+            ]
+          },
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        }
+      ],
+      "existing_data_class": null,
+      "table_constraints": [],
+      "custom_parent_class": null,
+      "interfaces_for_row_class": [],
+      "fixed_entity_info_name": null,
+      "base_dart_name": "Patients",
+      "row_class_name": "Patient",
+      "companion_class_name": null,
+      "without_rowid": false,
+      "strict": false,
+      "write_default_constraints": true,
+      "custom_constraints": [],
+      "attached_indices": []
+    },
+    "visits": {
+      "id": {
+        "library_uri": "package:olu_ai/core/database/database.dart",
+        "name": "visits"
+      },
+      "declaration": {
+        "source_uri": "package:olu_ai/core/database/database.dart",
+        "offset": 803,
+        "name": "Visits"
+      },
+      "references": [
+        {
+          "library_uri": "package:olu_ai/core/database/database.dart",
+          "name": "patients"
+        }
+      ],
+      "type": "table",
+      "columns": [
+        {
+          "sqlType": {
+            "builtin": "int"
+          },
+          "nullable": false,
+          "nameInSql": "id",
+          "nameInDart": "id",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 842,
+            "name": "id"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [
+            {
+              "type": "primary",
+              "is_auto_increment": true
+            }
+          ],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "int"
+          },
+          "nullable": false,
+          "nameInSql": "patient_id",
+          "nameInDart": "patientId",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 893,
+            "name": "patientId"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [
+            {
+              "type": "foreign_key",
+              "column": {
+                "table": {
+                  "library_uri": "package:olu_ai/core/database/database.dart",
+                  "name": "patients"
+                },
+                "name": "id"
+              },
+              "onUpdate": null,
+              "onDelete": null,
+              "initiallyDeferred": false
+            }
+          ],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": false,
+          "nameInSql": "timestamp",
+          "nameInDart": "timestamp",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 966,
+            "name": "timestamp"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": {
+            "elements": [
+              {
+                "lexeme": "currentDateAndTime",
+                "import_uri": "package:drift/src/runtime/query_builder/query_builder.dart"
+              }
+            ]
+          },
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "audio_path",
+          "nameInDart": "audioPath",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 1042,
+            "name": "audioPath"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "transcript",
+          "nameInDart": "transcript",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 1093,
+            "name": "transcript"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "ai_analysis",
+          "nameInDart": "aiAnalysis",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 1145,
+            "name": "aiAnalysis"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "chw_notes",
+          "nameInDart": "chwNotes",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 1197,
+            "name": "chwNotes"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": false,
+          "nameInSql": "created_at",
+          "nameInDart": "createdAt",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 1251,
+            "name": "createdAt"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": {
+            "elements": [
+              {
+                "lexeme": "currentDateAndTime",
+                "import_uri": "package:drift/src/runtime/query_builder/query_builder.dart"
+              }
+            ]
+          },
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": false,
+          "nameInSql": "updated_at",
+          "nameInDart": "updatedAt",
+          "declaration": {
+            "source_uri": "package:olu_ai/core/database/database.dart",
+            "offset": 1331,
+            "name": "updatedAt"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": {
+            "elements": [
+              {
+                "lexeme": "currentDateAndTime",
+                "import_uri": "package:drift/src/runtime/query_builder/query_builder.dart"
+              }
+            ]
+          },
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        }
+      ],
+      "existing_data_class": null,
+      "table_constraints": [],
+      "custom_parent_class": null,
+      "interfaces_for_row_class": [],
+      "fixed_entity_info_name": null,
+      "base_dart_name": "Visits",
+      "row_class_name": "Visit",
+      "companion_class_name": null,
+      "without_rowid": false,
+      "strict": false,
+      "write_default_constraints": true,
+      "custom_constraints": [],
+      "attached_indices": []
+    }
+  },
+  "imports": [
+    "package:drift/drift.dart",
+    "package:drift/native.dart",
+    "package:path_provider/path_provider.dart",
+    "package:path/path.dart",
+    "package:flutter_riverpod/flutter_riverpod.dart"
+  ]
+}

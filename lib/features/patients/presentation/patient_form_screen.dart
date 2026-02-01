@@ -1,7 +1,8 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:olu_ai/features/patients/data/patient_model.dart';
+import 'package:olu_ai/core/database/database.dart';
 import 'package:olu_ai/features/patients/data/patient_repository.dart';
 import 'package:olu_ai/features/patients/presentation/patient_providers.dart';
 
@@ -29,16 +30,15 @@ class _PatientFormScreenState extends ConsumerState<PatientFormScreen> {
   Future<void> _savePatient() async {
     if (_formKey.currentState!.validate()) {
       final repository = await ref.read(patientRepositoryProvider.future);
-      
-      final newPatient = Patient()
-        ..firstName = _firstNameController.text
-        ..lastName = _lastNameController.text
-        ..village = _villageController.text
-        ..createdAt = DateTime.now()
-        ..updatedAt = DateTime.now();
+
+      final newPatient = PatientsCompanion.insert(
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        village: drift.Value(_villageController.text),
+      );
 
       await repository.addPatient(newPatient);
-      
+
       // Invalidate the list provider to refresh the list
       ref.invalidate(patientListProvider);
 

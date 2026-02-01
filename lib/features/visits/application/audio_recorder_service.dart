@@ -1,10 +1,7 @@
-import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'audio_recorder_service.g.dart';
 
 class AudioRecorderService {
   final AudioRecorder _audioRecorder = AudioRecorder();
@@ -29,7 +26,7 @@ class AudioRecorderService {
   Future<void> dispose() async {
     _audioRecorder.dispose();
   }
-  
+
   Future<String> generateRecordingPath() async {
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -37,7 +34,8 @@ class AudioRecorderService {
   }
 }
 
-@riverpod
-AudioRecorderService audioRecorderService(AudioRecorderServiceRef ref) {
-  return AudioRecorderService();
-}
+final audioRecorderServiceProvider = Provider<AudioRecorderService>((ref) {
+  final service = AudioRecorderService();
+  ref.onDispose(() => service.dispose());
+  return service;
+});

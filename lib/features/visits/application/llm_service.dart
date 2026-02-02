@@ -90,7 +90,9 @@ For the most likely diagnosis, suggest:
 ## Red Flags & Referral
 ⚠️ List any warning signs that require immediate referral to a healthcare facility.
 
-Be concise but thorough. Use simple language appropriate for community health settings.
+Be concise but thorough. Do not include speculative information not present in the text.
+
+Use simple language appropriate for community health settings.
 """;
 
     final prompt = "$systemPrompt\n\nTranscript:\n$transcript\n\nAnalysis:";

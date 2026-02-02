@@ -38,3 +38,8 @@ flutter:
 
   uses-material-design: true
 
+  assets:
+    # ⬇️ REMOVE/COMMENT the lines below for Production Release to keep app size small
+    - models/sherpa/
+    - models/llm/
+

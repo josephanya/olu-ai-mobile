@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
@@ -12,6 +14,7 @@ class TranscriptionService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
+    sherpa.initBindings();
     final modelPath = await _getModelPath();
 
     final config = sherpa.OfflineRecognizerConfig(
@@ -21,10 +24,10 @@ class TranscriptionService {
       ),
       model: sherpa.OfflineModelConfig(
         whisper: sherpa.OfflineWhisperModelConfig(
-          encoder: '$modelPath/encoder.onnx',
-          decoder: '$modelPath/decoder.onnx',
+          encoder: '$modelPath/tiny.en-encoder.int8.onnx',
+          decoder: '$modelPath/tiny.en-decoder.int8.onnx',
         ),
-        tokens: '$modelPath/tokens.txt',
+        tokens: '$modelPath/tiny-tokens.txt',
         numThreads: 1,
         debug: false,
       ),
@@ -71,11 +74,13 @@ class TranscriptionService {
   }
 
   Future<String> _getModelPath() async {
+    // Check for local project directory.
+    // This only works if the app has access to the project root (e.g. during local desktop development).
     final localDir = Directory('models/sherpa');
     if (await localDir.exists()) {
-      final encoder = File('${localDir.path}/encoder.onnx');
-      final decoder = File('${localDir.path}/decoder.onnx');
-      final tokens = File('${localDir.path}/tokens.txt');
+      final encoder = File('${localDir.path}/tiny.en-encoder.int8.onnx');
+      final decoder = File('${localDir.path}/tiny.en-decoder.int8.onnx');
+      final tokens = File('${localDir.path}/tiny-tokens.txt');
 
       if (await encoder.exists() &&
           await decoder.exists() &&
@@ -89,26 +94,59 @@ class TranscriptionService {
 
     if (!await modelDir.exists()) {
       await modelDir.create(recursive: true);
-      const hfUrl =
-          'https://huggingface.co/csukuangfj/sherpa-onnx-whisper-tiny.en/resolve/main';
 
-      if (!await File('${modelDir.path}/encoder.onnx').exists()) {
-        await _downloadFile('$hfUrl/tiny.en-encoder.int8.onnx',
-            '${modelDir.path}/encoder.onnx');
-      }
-      if (!await File('${modelDir.path}/decoder.onnx').exists()) {
-        await _downloadFile('$hfUrl/tiny.en-decoder.int8.onnx',
-            '${modelDir.path}/decoder.onnx');
-      }
-      if (!await File('${modelDir.path}/tokens.txt').exists()) {
-        await _downloadFile(
-            '$hfUrl/tiny.en-tokens.txt', '${modelDir.path}/tokens.txt');
+      // Check if we bundled the models as assets (for local development)
+      final bundled = await _tryCopyFromAssets(modelDir.path);
+
+      if (!bundled) {
+        debugPrint('Models not found in assets, starting download...');
+        const hfUrl =
+            'https://huggingface.co/csukuangfj/sherpa-onnx-whisper-tiny.en/resolve/main';
+
+        if (!await File('${modelDir.path}/tiny.en-encoder.int8.onnx')
+            .exists()) {
+          await _downloadFile('$hfUrl/tiny.en-encoder.int8.onnx',
+              '${modelDir.path}/tiny.en-encoder.int8.onnx');
+        }
+        if (!await File('${modelDir.path}/tiny.en-decoder.int8.onnx')
+            .exists()) {
+          await _downloadFile('$hfUrl/tiny.en-decoder.int8.onnx',
+              '${modelDir.path}/tiny.en-decoder.int8.onnx');
+        }
+        if (!await File('${modelDir.path}/tiny-tokens.txt').exists()) {
+          await _downloadFile(
+              '$hfUrl/tiny-tokens.txt', '${modelDir.path}/tiny-tokens.txt');
+        }
       }
     }
     return modelDir.path;
   }
 
+  Future<bool> _tryCopyFromAssets(String targetPath) async {
+    final files = [
+      'tiny.en-encoder.int8.onnx',
+      'tiny.en-decoder.int8.onnx',
+      'tiny-tokens.txt'
+    ];
+
+    try {
+      for (final fileName in files) {
+        // We use a try-catch because rootBundle.load throws if asset is missing
+        final data = await rootBundle.load('models/sherpa/$fileName');
+        final bytes =
+            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        await File('$targetPath/$fileName').writeAsBytes(bytes);
+        debugPrint('Copied $fileName from assets');
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Models not bundled in assets.');
+      return false;
+    }
+  }
+
   Future<void> _downloadFile(String url, String savePath) async {
+    debugPrint('File downoad started');
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final file = File(savePath);

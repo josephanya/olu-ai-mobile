@@ -1,1 +1,0 @@
-{"valid_import":true,"imports":[{"uri":"package:flutter_test/flutter_test.dart","transitive":false},{"uri":"package:isar/isar.dart","transitive":false},{"uri":"package:olu_ai/features/visits/data/visit_model.dart","transitive":false},{"uri":"package:olu_ai/features/visits/data/visit_repository.dart","transitive":false}],"elements":[]}

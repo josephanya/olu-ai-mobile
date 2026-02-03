@@ -50,6 +50,40 @@ class LlmService {
     return _downloadModelIfNeeded();
   }
 
+  Future<String> getLiveGuidance(String transcript) async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    // If already busy, just return the last guidance or skip this frame
+    if (_currentCompleter != null && !_currentCompleter!.isCompleted) {
+      return "";
+    }
+
+    _currentCompleter = Completer<String>();
+    _responseBuffer.clear();
+
+    const systemPrompt = """
+You are a clinical assistant for a Community Health Worker (CHW). 
+The CHW is currently in a patient encounter.
+Listen to the transcript and provide 1-2 VERY SHORT, ACTIONABLE suggestions for the CHW.
+Suggestions should be about what to ask or check next.
+
+Examples:
+- "Ask about the duration of the cough."
+- "Check if the child has a sunken fontanelle."
+- "Ask if the patient has any known allergies."
+
+Be extremely concise. Use at most 15 words.
+""";
+
+    final prompt = "$systemPrompt\n\nTranscript:\n$transcript\n\nSuggestion:";
+    _llama!.sendPrompt(prompt);
+
+    // For live guidance, we wait less time or until a newline/stop signal
+    return _waitForResponse(timeout: const Duration(milliseconds: 3000));
+  }
+
   Future<String> analyzeVisit(String transcript) async {
     if (!_isInitialized) {
       await initialize();
@@ -100,15 +134,34 @@ Use simple language appropriate for community health settings.
     return _waitForResponse();
   }
 
-  Future<String> _waitForResponse() async {
+  Future<String> _waitForResponse(
+      {Duration timeout = const Duration(seconds: 1)}) async {
     int lastLength = 0;
+    int stableCount = 0;
+    final startTime = DateTime.now();
+
     while (true) {
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(milliseconds: 200));
+
       if (_responseBuffer.length == lastLength && lastLength > 0) {
+        stableCount++;
+        if (stableCount >= 2) {
+          // 400ms of stability
+          _currentCompleter?.complete(_responseBuffer.toString());
+          break;
+        }
+      } else {
+        stableCount = 0;
+      }
+
+      lastLength = _responseBuffer.length;
+
+      if (DateTime.now().difference(startTime) > timeout * 10) {
+        // Safety break
         _currentCompleter?.complete(_responseBuffer.toString());
         break;
       }
-      lastLength = _responseBuffer.length;
+
       if (_responseBuffer.length > 20000) {
         _currentCompleter?.complete(_responseBuffer.toString());
         break;

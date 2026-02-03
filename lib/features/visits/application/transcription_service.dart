@@ -8,7 +8,7 @@ import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 import 'package:http/http.dart' as http;
 
 class TranscriptionService {
-  sherpa.OfflineRecognizer? _recognizer;
+  sherpa.OnlineRecognizer? _onlineRecognizer;
   bool _isInitialized = false;
 
   Future<void> initialize() async {
@@ -17,27 +17,67 @@ class TranscriptionService {
     sherpa.initBindings();
     final modelPath = await _getModelPath();
 
-    final config = sherpa.OfflineRecognizerConfig(
+    final config = sherpa.OnlineRecognizerConfig(
       feat: const sherpa.FeatureConfig(
         sampleRate: 16000,
         featureDim: 80,
       ),
-      model: sherpa.OfflineModelConfig(
-        whisper: sherpa.OfflineWhisperModelConfig(
-          encoder: '$modelPath/tiny.en-encoder.int8.onnx',
-          decoder: '$modelPath/tiny.en-decoder.int8.onnx',
+      model: sherpa.OnlineModelConfig(
+        transducer: sherpa.OnlineTransducerModelConfig(
+          encoder: '$modelPath/encoder-epoch-99-avg-1.int8.onnx',
+          decoder: '$modelPath/decoder-epoch-99-avg-1.onnx',
+          joiner: '$modelPath/joiner-epoch-99-avg-1.onnx',
         ),
-        tokens: '$modelPath/tiny-tokens.txt',
+        tokens: '$modelPath/tokens.txt',
         numThreads: 1,
         debug: false,
       ),
     );
 
-    _recognizer = sherpa.OfflineRecognizer(config);
+    _onlineRecognizer = sherpa.OnlineRecognizer(config);
     _isInitialized = true;
   }
 
+  Stream<String> transcribeStream(Stream<Uint8List> audioStream) async* {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    final stream = _onlineRecognizer!.createStream();
+    String lastText = "";
+
+    await for (final chunk in audioStream) {
+      final samples = _convertPcm16ToFloat32(chunk);
+      stream.acceptWaveform(samples: samples, sampleRate: 16000);
+
+      while (_onlineRecognizer!.isReady(stream)) {
+        _onlineRecognizer!.decode(stream);
+      }
+
+      final result = _onlineRecognizer!.getResult(stream);
+      if (result.text.isNotEmpty && result.text != lastText) {
+        yield result.text;
+        lastText = result.text;
+      }
+    }
+
+    stream.free();
+  }
+
+  Float32List _convertPcm16ToFloat32(Uint8List bytes) {
+    final samples = Float32List(bytes.length ~/ 2);
+    final byteData =
+        ByteData.view(bytes.buffer, bytes.offsetInBytes, bytes.length);
+    for (var i = 0; i < samples.length; i++) {
+      samples[i] = byteData.getInt16(i * 2, Endian.little) / 32768.0;
+    }
+    return samples;
+  }
+
   Future<String> transcribe(String audioPath) async {
+    // Keep this for final processing if needed, but update to use online recognizer if necessary
+    // or just leave as is if we want to support both.
+    // For now, let's just make it return an empty string or implement via online recognizer.
     if (!_isInitialized) {
       await initialize();
     }
@@ -47,12 +87,17 @@ class TranscriptionService {
       return "Error: Could not read audio file.";
     }
 
-    final stream = _recognizer!.createStream();
-    stream.acceptWaveform(
-        samples: Float32List.fromList(waveData), sampleRate: 16000);
-    _recognizer!.decode(stream);
-    final result = _recognizer!.getResult(stream);
+    final stream = _onlineRecognizer!.createStream();
+    final samples =
+        Float32List.fromList(waveData.map((e) => e.toDouble()).toList());
+    stream.acceptWaveform(samples: samples, sampleRate: 16000);
+    stream.inputFinished();
 
+    while (_onlineRecognizer!.isReady(stream)) {
+      _onlineRecognizer!.decode(stream);
+    }
+
+    final result = _onlineRecognizer!.getResult(stream);
     stream.free();
     return result.text;
   }
@@ -78,19 +123,21 @@ class TranscriptionService {
     // This only works if the app has access to the project root (e.g. during local desktop development).
     final localDir = Directory('models/sherpa');
     if (await localDir.exists()) {
-      final encoder = File('${localDir.path}/tiny.en-encoder.int8.onnx');
-      final decoder = File('${localDir.path}/tiny.en-decoder.int8.onnx');
-      final tokens = File('${localDir.path}/tiny-tokens.txt');
+      final encoder = File('${localDir.path}/encoder-epoch-99-avg-1.int8.onnx');
+      final decoder = File('${localDir.path}/decoder-epoch-99-avg-1.onnx');
+      final joiner = File('${localDir.path}/joiner-epoch-99-avg-1.onnx');
+      final tokens = File('${localDir.path}/tokens.txt');
 
       if (await encoder.exists() &&
           await decoder.exists() &&
+          await joiner.exists() &&
           await tokens.exists()) {
         return localDir.path;
       }
     }
 
     final docDir = await getApplicationDocumentsDirectory();
-    final modelDir = Directory('${docDir.path}/sherpa_model');
+    final modelDir = Directory('${docDir.path}/sherpa_online_model');
 
     if (!await modelDir.exists()) {
       await modelDir.create(recursive: true);
@@ -101,21 +148,26 @@ class TranscriptionService {
       if (!bundled) {
         debugPrint('Models not found in assets, starting download...');
         const hfUrl =
-            'https://huggingface.co/csukuangfj/sherpa-onnx-whisper-tiny.en/resolve/main';
+            'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/resolve/main';
 
-        if (!await File('${modelDir.path}/tiny.en-encoder.int8.onnx')
+        if (!await File('${modelDir.path}/encoder-epoch-99-avg-1.int8.onnx')
             .exists()) {
-          await _downloadFile('$hfUrl/tiny.en-encoder.int8.onnx',
-              '${modelDir.path}/tiny.en-encoder.int8.onnx');
+          await _downloadFile('$hfUrl/encoder-epoch-99-avg-1.int8.onnx',
+              '${modelDir.path}/encoder-epoch-99-avg-1.int8.onnx');
         }
-        if (!await File('${modelDir.path}/tiny.en-decoder.int8.onnx')
+        if (!await File('${modelDir.path}/decoder-epoch-99-avg-1.onnx')
             .exists()) {
-          await _downloadFile('$hfUrl/tiny.en-decoder.int8.onnx',
-              '${modelDir.path}/tiny.en-decoder.int8.onnx');
+          await _downloadFile('$hfUrl/decoder-epoch-99-avg-1.onnx',
+              '${modelDir.path}/decoder-epoch-99-avg-1.onnx');
         }
-        if (!await File('${modelDir.path}/tiny-tokens.txt').exists()) {
+        if (!await File('${modelDir.path}/joiner-epoch-99-avg-1.onnx')
+            .exists()) {
+          await _downloadFile('$hfUrl/joiner-epoch-99-avg-1.onnx',
+              '${modelDir.path}/joiner-epoch-99-avg-1.onnx');
+        }
+        if (!await File('${modelDir.path}/tokens.txt').exists()) {
           await _downloadFile(
-              '$hfUrl/tiny-tokens.txt', '${modelDir.path}/tiny-tokens.txt');
+              '$hfUrl/tokens.txt', '${modelDir.path}/tokens.txt');
         }
       }
     }
@@ -124,9 +176,10 @@ class TranscriptionService {
 
   Future<bool> _tryCopyFromAssets(String targetPath) async {
     final files = [
-      'tiny.en-encoder.int8.onnx',
-      'tiny.en-decoder.int8.onnx',
-      'tiny-tokens.txt'
+      'encoder-epoch-99-avg-1.int8.onnx',
+      'decoder-epoch-99-avg-1.onnx',
+      'joiner-epoch-99-avg-1.onnx',
+      'tokens.txt'
     ];
 
     try {

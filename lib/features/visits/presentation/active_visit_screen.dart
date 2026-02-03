@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +23,31 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
   String _transcript = "";
   String? _audioPath;
   String? _aiAnalysis;
+  String _liveGuidance = "";
+  StreamSubscription? _transcriptionSubscription;
+  Timer? _guidanceTimer;
+
+  @override
+  void dispose() {
+    _transcriptionSubscription?.cancel();
+    _guidanceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startGuidanceTimer() {
+    _guidanceTimer?.cancel();
+    _guidanceTimer = Timer.periodic(const Duration(seconds: 8), (timer) async {
+      if (_transcript.isNotEmpty && _isRecording) {
+        final llm = ref.read(llmServiceProvider);
+        final guidance = await llm.getLiveGuidance(_transcript);
+        if (guidance.isNotEmpty && mounted) {
+          setState(() {
+            _liveGuidance = guidance;
+          });
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +60,44 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
       ),
       body: Column(
         children: [
+          if (_isRecording && _liveGuidance.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                color: Theme.of(context).colorScheme.tertiaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.lightbulb,
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Live Insight',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        Theme.of(context).colorScheme.tertiary,
+                                  ),
+                            ),
+                            Text(_liveGuidance),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -54,21 +118,37 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
                 FloatingActionButton.large(
                   onPressed: () async {
                     if (_isRecording) {
+                      await _transcriptionSubscription?.cancel();
+                      _guidanceTimer?.cancel();
                       final path = await recorder.stopRecording();
                       setState(() {
                         _isRecording = false;
                         _audioPath = path;
+                        _liveGuidance = "";
                       });
-
-                      if (path != null) {
-                        final text = await transcriber.transcribe(path);
-                        setState(() {
-                          _transcript += "\n$text";
-                        });
-                      }
                     } else {
                       final path = await recorder.generateRecordingPath();
-                      await recorder.startRecording(path);
+                      setState(() {
+                        _transcript = "";
+                        _liveGuidance = "";
+                        _audioPath = path;
+                      });
+
+                      final audioStream = await recorder.startAudioStream(path);
+                      final transcriptStream =
+                          transcriber.transcribeStream(audioStream);
+
+                      _transcriptionSubscription =
+                          transcriptStream.listen((text) {
+                        if (mounted) {
+                          setState(() {
+                            _transcript = text;
+                          });
+                        }
+                      });
+
+                      _startGuidanceTimer();
+
                       setState(() {
                         _isRecording = true;
                       });

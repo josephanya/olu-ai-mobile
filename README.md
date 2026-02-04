@@ -2,12 +2,26 @@
 
 Olu AI is an open-source, offline-first mobile application that allows Community Health Workers (CHWs) to record and analyze patient encounters using AI. Unlike traditional transcription tools, Olu AI **actively listens** during the encounter, providing a real-time transcript and **AI-powered guidance** to help CHWs identify red flags and ask the right questions in the moment.
 
+### Model Management Strategy
+
+Olu AI uses a hybrid strategy to balance developer convenience with production app size.
+
+#### 🛠️ Local Development (Emulators/Mobile)
+To avoid high data usage and slow downloads during development, you should bundle the models with your app.
+1.  **Download**: Follow the Sherpa and LLM instructions below to download the models manually.
+2.  **Enable Assets**: Ensure the model directories are uncommented in your `pubspec.yaml` assets section.
+3.  **Run**: On the first run, the app will copy these files from the assets to the phone's persistent storage.
+
+#### 🚀 Production Release
+To keep the initial app bundle small (standard size), you should download models on-demand.
+1.  **Disable Assets**: Comment out or remove the model lines in `pubspec.yaml`.
+2.  **On-First-Run**: When the user opens the app for the first time, it will automatically download the required models (~850MB total) from HuggingFace.
+
+---
+
 ### Sherpa Model Setup (Local Reference)
 
-The application uses Sherpa-ONNX with a streaming Zipformer model for real-time, offline transcription. To keep the repository size small, the large model files are excluded from version control.
-
-> [!NOTE]
-> **Mobile Emulators:** Since emulators are isolated from your computer's files, they will always download the models (~50MB) on the first run. The instructions below are for reference or if you run the app on a platform with direct filesystem access.
+The application uses Sherpa-ONNX with a streaming Zipformer model for real-time, offline transcription.
 
 1. Create a folder: `models/sherpa` in the root of the project.
 2. Download the following files from [Hugging Face](https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/tree/main):
@@ -19,11 +33,8 @@ The application uses Sherpa-ONNX with a streaming Zipformer model for real-time,
 
 ### LLM Model Setup (Optional for Local Dev)
 
-The application uses TinyLlama GGUF for offline visit analysis and real-time guidance.
+The application uses a specialized Llama 3 3B Medical model for offline visit analysis and real-time guidance.
 
 1. Create a folder: `models/llm` in the root of the project.
-2. Download `tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf` from [Hugging Face](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf).
-3. Rename the file to `tinyllama.gguf` and place it inside the `models/llm` folder.
-
-> [!NOTE] 
-> If these files are missing, the application will attempt to download them automatically on the first run (Total approx. 650MB).
+2. Download `LLAMA3-3B-Medical-COT.Q4_K_M.gguf` from [Hugging Face](https://huggingface.co/alpha-ai/LLAMA3-3B-Medical-COT-GGUF/resolve/main/LLAMA3-3B-Medical-COT.Q4_K_M.gguf).
+3. Rename the file to `medical_llama.gguf` and place it inside the `models/llm` folder.

@@ -108,7 +108,12 @@ class TranscriptionService {
 
     final bytes = await file.readAsBytes();
     final samples = <double>[];
-    for (var i = 44; i < bytes.length; i += 2) {
+
+    // If it's a .pcm file, it's raw 16-bit PCM. If .wav, skip the 44-byte header.
+    final isRawPcm = path.endsWith('.pcm');
+    final startByte = isRawPcm ? 0 : 44;
+
+    for (var i = startByte; i < bytes.length; i += 2) {
       if (i + 1 < bytes.length) {
         int sample = bytes[i] | (bytes[i + 1] << 8);
         if (sample > 32767) sample -= 65536;

@@ -78,7 +78,7 @@ class AudioRecorderService {
   Future<String> generateRecordingPath() async {
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return '${dir.path}/recording_$timestamp.m4a';
+    return '${dir.path}/recording_$timestamp.pcm';
   }
 }
 

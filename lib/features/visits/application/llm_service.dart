@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:llama_cpp_dart/llama_cpp_dart.dart';
@@ -43,11 +45,43 @@ class LlmService {
   }
 
   Future<String> _getModelPath() async {
-    const localModelPath = 'models/llm/tinyllama.gguf';
+    // 1. Check for local project directory (Desktop/Local dev with direct access)
+    const localModelPath = 'models/llm/medical_llama.gguf';
     if (await File(localModelPath).exists()) {
       return localModelPath;
     }
+
+    // 2. Check for the model in the app's documents directory
+    final docDir = await getApplicationDocumentsDirectory();
+    final persistentPath = '${docDir.path}/medical_llama.gguf';
+    final file = File(persistentPath);
+
+    if (await file.exists()) {
+      return persistentPath;
+    }
+
+    // 3. Try to copy from bundled assets (for emulator/mobile dev if files were added)
+    final copied = await _tryCopyFromAssets(persistentPath);
+    if (copied) {
+      return persistentPath;
+    }
+
+    // 4. Fallback to download
     return _downloadModelIfNeeded();
+  }
+
+  Future<bool> _tryCopyFromAssets(String targetPath) async {
+    try {
+      final data = await rootBundle.load('models/llm/medical_llama.gguf');
+      final bytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      await File(targetPath).writeAsBytes(bytes);
+      debugPrint('Copied medical_llama.gguf from assets');
+      return true;
+    } catch (e) {
+      debugPrint('Medical LLM model not bundled in assets.');
+      return false;
+    }
   }
 
   Future<String> getLiveGuidance(String transcript) async {
@@ -172,12 +206,12 @@ Use simple language appropriate for community health settings.
 
   Future<String> _downloadModelIfNeeded() async {
     final docDir = await getApplicationDocumentsDirectory();
-    final modelPath = '${docDir.path}/tinyllama.gguf';
+    final modelPath = '${docDir.path}/medical_llama.gguf';
     final file = File(modelPath);
 
     if (!await file.exists()) {
       const url =
-          'https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf';
+          'https://huggingface.co/alpha-ai/LLAMA3-3B-Medical-COT-GGUF/resolve/main/LLAMA3-3B-Medical-COT.Q4_K_M.gguf';
 
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

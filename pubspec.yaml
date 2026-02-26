@@ -24,6 +24,8 @@ dependencies:
   sherpa_onnx: ^1.12.23
   http: ^1.6.0
   llama_cpp_dart: ^0.0.9
+  flutter_tts: ^4.2.0
+  audio_session: ^0.1.21
 
 dev_dependencies:
   flutter_test:

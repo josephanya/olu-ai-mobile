@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -24,6 +25,26 @@ class AudioRecorderService {
 
   Future<Stream<Uint8List>> startAudioStream([String? path]) async {
     if (await hasPermission()) {
+      // Configure the audio session so the OS knows we want:
+      //   Input  → built-in phone microphone (not the Bluetooth earpiece mic)
+      //   Output → default speaker / Bluetooth A2DP (for TTS playback)
+      // This prevents the OS from switching to HFP mode (which degrades audio
+      // quality and can mute the Bluetooth earpiece's TTS output).
+      final session = await AudioSession.instance;
+      await session.configure(AudioSessionConfiguration(
+        avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+        avAudioSessionCategoryOptions:
+            AVAudioSessionCategoryOptions.allowBluetooth |
+                AVAudioSessionCategoryOptions.defaultToSpeaker,
+        avAudioSessionMode: AVAudioSessionMode.voiceChat,
+        androidAudioAttributes: const AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.speech,
+          usage: AndroidAudioUsage.voiceCommunication,
+          flags: AndroidAudioFlags.none,
+        ),
+        androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      ));
+
       if (path != null) {
         // We use the stream and write it to a file ourselves to support both
         final file = File(path);

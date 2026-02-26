@@ -7,6 +7,7 @@ import 'package:olu_ai/core/database/database.dart';
 import 'package:olu_ai/features/visits/application/audio_recorder_service.dart';
 import 'package:olu_ai/features/visits/application/transcription_service.dart';
 import 'package:olu_ai/features/visits/application/llm_service.dart';
+import 'package:olu_ai/features/visits/application/tts_service.dart';
 import 'package:olu_ai/features/visits/data/visit_repository.dart';
 
 class ActiveVisitScreen extends ConsumerStatefulWidget {
@@ -24,6 +25,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
   String? _audioPath;
   String? _aiAnalysis;
   String _liveGuidance = "";
+  String _lastSpokenGuidance = "";
   StreamSubscription? _transcriptionSubscription;
   Timer? _guidanceTimer;
 
@@ -44,6 +46,14 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
           setState(() {
             _liveGuidance = guidance;
           });
+          // Speak the guidance through the Bluetooth earpiece (or phone speaker
+          // as fallback). Deduplication is handled inside TtsService so the
+          // same suggestion is not repeated on every timer tick.
+          final tts = ref.read(ttsServiceProvider);
+          if (guidance != _lastSpokenGuidance) {
+            _lastSpokenGuidance = guidance;
+            await tts.speak(guidance);
+          }
         }
       }
     });
@@ -121,10 +131,13 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
                       await _transcriptionSubscription?.cancel();
                       _guidanceTimer?.cancel();
                       final path = await recorder.stopRecording();
+                      // Stop any in-progress TTS speech when the visit ends.
+                      await ref.read(ttsServiceProvider).stop();
                       setState(() {
                         _isRecording = false;
                         _audioPath = path;
                         _liveGuidance = "";
+                        _lastSpokenGuidance = "";
                       });
                     } else {
                       final path = await recorder.generateRecordingPath();

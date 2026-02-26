@@ -2,6 +2,8 @@
 
 Olu AI is an open-source, offline-first mobile application that allows Community Health Workers (CHWs) to record and analyze patient encounters using AI. Unlike traditional transcription tools, Olu AI **actively listens** during the encounter, providing a real-time **AI-powered guidance** to help CHWs identify red flags and ask the right questions in the moment.
 
+---
+
 ### 🎧 Live Audio Guidance (Bluetooth Earpiece)
 
 Olu AI supports a "whisper" mode for Community Health Workers. By connecting a Bluetooth earpiece, the CHW can hear live AI suggestions without the patient hearing them. 
@@ -9,6 +11,8 @@ Olu AI supports a "whisper" mode for Community Health Workers. By connecting a B
 - **Input:** Uses the **Smartphone Microphone** to capture a balanced recording of both the CHW and the patient.
 - **Output:** Routes AI suggestions to the **Bluetooth Earpiece** via Text-to-Speech (TTS).
 - **Benefit:** This setup ensures high-quality transcription while maintaining clinical discretion.
+
+---
 
 ### Model Management Strategy
 
@@ -25,6 +29,8 @@ To keep the initial app bundle small (standard size), you should download models
 1.  **Disable Assets**: Comment out or remove the model lines in `pubspec.yaml`.
 2.  **On-First-Run**: When the user opens the app for the first time, it will automatically download the required models (~850MB total) from HuggingFace.
 
+---
+
 ### Sherpa Model Setup (Local Reference)
 
 The application uses Sherpa-ONNX with a streaming Zipformer model for real-time, offline transcription.
@@ -36,6 +42,8 @@ The application uses Sherpa-ONNX with a streaming Zipformer model for real-time,
    - `joiner-epoch-99-avg-1.onnx`
    - `tokens.txt`
 3. Place these files inside the `models/sherpa` folder.
+
+---
 
 ### LLM Model Setup (Optional for Local Dev)
 

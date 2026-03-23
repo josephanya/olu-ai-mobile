@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:olu_ai/core/database/database.dart';
+import 'package:olu_ai/core/theme/app_theme.dart';
 import 'package:olu_ai/features/visits/application/audio_recorder_service.dart';
 import 'package:olu_ai/features/visits/application/transcription_service.dart';
 import 'package:olu_ai/features/visits/application/llm_service.dart';
@@ -19,7 +21,8 @@ class ActiveVisitScreen extends ConsumerStatefulWidget {
   ConsumerState<ActiveVisitScreen> createState() => _ActiveVisitScreenState();
 }
 
-class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
+class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
+    with TickerProviderStateMixin {
   bool _isRecording = false;
   String _transcript = "";
   String? _audioPath;
@@ -28,11 +31,30 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
   String _lastSpokenGuidance = "";
   StreamSubscription? _transcriptionSubscription;
   Timer? _guidanceTimer;
+  Timer? _durationTimer;
+  int _recordingSeconds = 0;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
     _transcriptionSubscription?.cancel();
     _guidanceTimer?.cancel();
+    _durationTimer?.cancel();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -46,9 +68,6 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
           setState(() {
             _liveGuidance = guidance;
           });
-          // Speak the guidance through the Bluetooth earpiece (or phone speaker
-          // as fallback). Deduplication is handled inside TtsService so the
-          // same suggestion is not repeated on every timer tick.
           final tts = ref.read(ttsServiceProvider);
           if (guidance != _lastSpokenGuidance) {
             _lastSpokenGuidance = guidance;
@@ -59,203 +78,491 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen> {
     });
   }
 
+  void _startDurationTimer() {
+    _recordingSeconds = 0;
+    _durationTimer?.cancel();
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() => _recordingSeconds++);
+      }
+    });
+  }
+
+  String _formatDuration(int totalSeconds) {
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final recorder = ref.watch(audioRecorderServiceProvider);
     final transcriber = ref.watch(transcriptionServiceProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Active Visit'),
+        actions: [
+          if (_isRecording)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Row(
+                children: [
+                  // Pulsing red dot
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.4, end: 1.0),
+                    duration: const Duration(milliseconds: 800),
+                    curve: Curves.easeInOut,
+                    builder: (context, value, child) {
+                      return Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withValues(alpha: value),
+                          shape: BoxShape.circle,
+                        ),
+                      );
+                    },
+                    onEnd: () {},
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _formatDuration(_recordingSeconds),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors.redAccent,
+                      fontFeatures: [const FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
       body: Column(
         children: [
+          // ─── Live Insight Card ─────────────────────────────
           if (_isRecording && _liveGuidance.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Card(
-                color: Theme.of(context).colorScheme.tertiaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.lightbulb,
-                        color: Theme.of(context).colorScheme.tertiary,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.tertiaryContainer
+                          .withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color:
+                            theme.colorScheme.tertiary.withValues(alpha: 0.3),
+                        width: 0.5,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Live Insight',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(context).colorScheme.tertiary,
-                                  ),
-                            ),
-                            Text(_liveGuidance),
-                          ],
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.tertiary
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.lightbulb_rounded,
+                            color: theme.colorScheme.tertiary,
+                            size: 20,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                _transcript.isEmpty
-                    ? 'Start recording to see transcript...'
-                    : _transcript,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(24.0),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FloatingActionButton.large(
-                  onPressed: () async {
-                    if (_isRecording) {
-                      await _transcriptionSubscription?.cancel();
-                      _guidanceTimer?.cancel();
-                      final path = await recorder.stopRecording();
-                      // Stop any in-progress TTS speech when the visit ends.
-                      await ref.read(ttsServiceProvider).stop();
-                      setState(() {
-                        _isRecording = false;
-                        _audioPath = path;
-                        _liveGuidance = "";
-                        _lastSpokenGuidance = "";
-                      });
-                    } else {
-                      final path = await recorder.generateRecordingPath();
-                      setState(() {
-                        _transcript = "";
-                        _liveGuidance = "";
-                        _audioPath = path;
-                      });
-
-                      final audioStream = await recorder.startAudioStream(path);
-                      final transcriptStream =
-                          transcriber.transcribeStream(audioStream);
-
-                      _transcriptionSubscription =
-                          transcriptStream.listen((text) {
-                        if (mounted) {
-                          setState(() {
-                            _transcript = text;
-                          });
-                        }
-                      });
-
-                      _startGuidanceTimer();
-
-                      setState(() {
-                        _isRecording = true;
-                      });
-                    }
-                  },
-                  backgroundColor: _isRecording
-                      ? Colors.red
-                      : Theme.of(context).colorScheme.primary,
-                  child: Icon(
-                    _isRecording ? Icons.stop : Icons.mic,
-                    color: _isRecording
-                        ? Colors.white
-                        : Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_transcript.isNotEmpty && !_isRecording)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  // Show loading
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) =>
-                        const Center(child: CircularProgressIndicator()),
-                  );
-
-                  final llm = ref.read(llmServiceProvider);
-                  final analysis = await llm.analyzeVisit(_transcript);
-                  setState(() {
-                    _aiAnalysis = analysis;
-                  });
-
-                  if (context.mounted) {
-                    Navigator.pop(context); // Hide loading
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) => DraggableScrollableSheet(
-                        initialChildSize: 0.6,
-                        minChildSize: 0.4,
-                        maxChildSize: 0.9,
-                        expand: false,
-                        builder: (context, scrollController) =>
-                            SingleChildScrollView(
-                          controller: scrollController,
-                          padding: const EdgeInsets.all(16.0),
+                        const SizedBox(width: 12),
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'AI Analysis',
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall,
+                                'Live Insight',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.colorScheme.tertiary,
+                                ),
                               ),
-                              const SizedBox(height: 16),
-                              Text(analysis),
-                              const SizedBox(height: 32),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  final repository = await ref
-                                      .read(visitRepositoryProvider.future);
-
-                                  await repository
-                                      .addVisit(VisitsCompanion.insert(
-                                    patientId: widget.patientId,
-                                    audioPath: drift.Value(_audioPath),
-                                    transcript: drift.Value(_transcript),
-                                    aiAnalysis: drift.Value(_aiAnalysis),
-                                  ));
-
-                                  if (context.mounted) {
-                                    context.pop(); // Close bottom sheet
-                                    context.pop(); // Go back to patient list
-                                  }
-                                },
-                                child: const Text('Save Visit'),
+                              const SizedBox(height: 4),
+                              Text(
+                                _liveGuidance,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.9),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.analytics),
-                label: const Text('Analyze Visit'),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
+
+          // ─── Transcript Area ───────────────────────────────
+          Expanded(
+            child: _transcript.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _isRecording
+                              ? Icons.hearing_rounded
+                              : Icons.mic_none_rounded,
+                          size: 56,
+                          color: theme.colorScheme.outline,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _isRecording
+                              ? 'Listening...'
+                              : 'Tap the mic to start recording',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: theme.colorScheme.outline
+                              .withValues(alpha: 0.3),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        _transcript,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          height: 1.7,
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+
+          // ─── Bottom Controls ───────────────────────────────
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border(
+                top: BorderSide(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Mic button
+                Center(
+                  child: AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale:
+                            _isRecording ? _pulseAnimation.value : 1.0,
+                        child: child,
+                      );
+                    },
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer ring when recording
+                        if (_isRecording)
+                          TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            duration: const Duration(milliseconds: 1200),
+                            curve: Curves.easeOut,
+                            builder: (context, value, _) {
+                              return Container(
+                                width: 88 + (16 * value),
+                                height: 88 + (16 * value),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.redAccent
+                                        .withValues(alpha: 0.3 * (1 - value)),
+                                    width: 2,
+                                  ),
+                                ),
+                              );
+                            },
+                            onEnd: () {},
+                          ),
+                        // Main button
+                        SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: FloatingActionButton.large(
+                            heroTag: 'record_fab',
+                            onPressed: () async {
+                              if (_isRecording) {
+                                _pulseController.stop();
+                                _durationTimer?.cancel();
+                                await _transcriptionSubscription?.cancel();
+                                _guidanceTimer?.cancel();
+                                final path = await recorder.stopRecording();
+                                await ref.read(ttsServiceProvider).stop();
+                                setState(() {
+                                  _isRecording = false;
+                                  _audioPath = path;
+                                  _liveGuidance = "";
+                                  _lastSpokenGuidance = "";
+                                });
+                              } else {
+                                final path =
+                                    await recorder.generateRecordingPath();
+                                setState(() {
+                                  _transcript = "";
+                                  _liveGuidance = "";
+                                  _audioPath = path;
+                                });
+
+                                final audioStream =
+                                    await recorder.startAudioStream(path);
+                                final transcriptStream =
+                                    transcriber.transcribeStream(audioStream);
+
+                                _transcriptionSubscription =
+                                    transcriptStream.listen((text) {
+                                  if (mounted) {
+                                    setState(() {
+                                      _transcript = text;
+                                    });
+                                  }
+                                });
+
+                                _startGuidanceTimer();
+                                _startDurationTimer();
+                                _pulseController.repeat(reverse: true);
+
+                                setState(() {
+                                  _isRecording = true;
+                                });
+                              }
+                            },
+                            backgroundColor: _isRecording
+                                ? Colors.redAccent
+                                : theme.colorScheme.primary,
+                            shape: const CircleBorder(),
+                            elevation: _isRecording ? 8 : 4,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              child: Icon(
+                                _isRecording ? Icons.stop_rounded : Icons.mic,
+                                key: ValueKey(_isRecording),
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _isRecording ? 'Tap to stop' : 'Tap to record',
+                  style: theme.textTheme.bodySmall,
+                ),
+
+                // Analyze button
+                if (_transcript.isNotEmpty && !_isRecording) ...[
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _analyzeVisit(context),
+                      icon: const Icon(Icons.auto_awesome_rounded, size: 20),
+                      label: const Text('Analyze Visit'),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _analyzeVisit(BuildContext context) async {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 20),
+              Text('Analyzing visit...', style: theme.textTheme.titleMedium),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final llm = ref.read(llmServiceProvider);
+    final analysis = await llm.analyzeVisit(_transcript);
+    setState(() {
+      _aiAnalysis = analysis;
+    });
+
+    if (context.mounted) {
+      Navigator.pop(context); // Hide loading
+      _showAnalysisSheet(context, analysis);
+    }
+  }
+
+  void _showAnalysisSheet(BuildContext context, String analysis) {
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.65,
+        minChildSize: 0.4,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            // Drag handle
+            Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 8),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.primaryGradient,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome_rounded,
+                            color: Color(0xFF003D36),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'AI Analysis',
+                          style: theme.textTheme.headlineMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Analysis content
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: theme.colorScheme.outline
+                              .withValues(alpha: 0.3),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        analysis,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          height: 1.7,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // Save button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final repository = await ref
+                              .read(visitRepositoryProvider.future);
+
+                          await repository.addVisit(VisitsCompanion.insert(
+                            patientId: widget.patientId,
+                            audioPath: drift.Value(_audioPath),
+                            transcript: drift.Value(_transcript),
+                            aiAnalysis: drift.Value(_aiAnalysis),
+                          ));
+
+                          if (context.mounted) {
+                            context.pop(); // Close bottom sheet
+                            context.pop(); // Go back to patient list
+                          }
+                        },
+                        icon: const Icon(
+                            Icons.check_circle_outline_rounded,
+                            size: 20),
+                        label: const Text('Save Visit'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

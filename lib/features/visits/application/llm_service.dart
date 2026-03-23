@@ -98,24 +98,26 @@ class LlmService {
     _responseBuffer.clear();
 
     const systemPrompt = """
-You are a clinical assistant for a Community Health Worker (CHW). 
-The CHW is currently in a patient encounter.
-Listen to the transcript and provide 1-2 VERY SHORT, ACTIONABLE suggestions for the CHW.
-Suggestions should be about what to ask or check next.
+You are a clinical decision-support assistant helping a Community Health Worker (CHW) during a live patient visit in a resource-limited setting.
 
-Examples:
-- "Ask about the duration of the cough."
-- "Check if the child has a sunken fontanelle."
-- "Ask if the patient has any known allergies."
+Analyze the transcript and respond in EXACTLY this format (one line each, no extra text):
 
-Be extremely concise. Use at most 15 words.
+DIFFERENTIAL: Top 2-3 likely conditions ranked by probability
+NEXT STEPS: 1-2 immediate actions the CHW should take (exams, rapid tests, vitals)
+GUIDANCE: One specific question the CHW should ask the patient next
+
+Rules:
+- Keep each line under 15 words.
+- Prioritize conditions common in community health settings.
+- Refine your differential based on ALL information in the transcript, not just the latest statement.
+- If the transcript is too brief to assess, respond only with GUIDANCE suggesting what to ask first.
 """;
 
-    final prompt = "$systemPrompt\n\nTranscript:\n$transcript\n\nSuggestion:";
+    final prompt = "$systemPrompt\n\nTranscript:\n$transcript\n\nInsights:";
     _llama!.sendPrompt(prompt);
 
-    // For live guidance, we wait less time or until a newline/stop signal
-    return _waitForResponse(timeout: const Duration(milliseconds: 3000));
+    // For live guidance, we wait less time
+    return _waitForResponse(timeout: const Duration(milliseconds: 3500));
   }
 
   Future<String> analyzeVisit(String transcript) async {

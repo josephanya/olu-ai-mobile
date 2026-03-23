@@ -165,43 +165,54 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                       ),
                     ),
                     padding: const EdgeInsets.all(16),
-                    child: Row(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiary
-                                .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.lightbulb_rounded,
-                            color: theme.colorScheme.tertiary,
-                            size: 20,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.tertiary
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.auto_awesome_rounded,
+                                color: theme.colorScheme.tertiary,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Clinical Insight',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: theme.colorScheme.tertiary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Live Insight',
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: theme.colorScheme.tertiary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _liveGuidance,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.9),
-                                ),
-                              ),
-                            ],
-                          ),
+                        const SizedBox(height: 12),
+                        _buildInsightSection(
+                          theme: theme,
+                          title: 'Possibilities',
+                          icon: Icons.analytics_outlined,
+                          content: _parseInsight(_liveGuidance, 'DIFFERENTIAL'),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInsightSection(
+                          theme: theme,
+                          title: 'Next Steps',
+                          icon: Icons.checklist_rtl_rounded,
+                          content: _parseInsight(_liveGuidance, 'NEXT STEPS'),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInsightSection(
+                          theme: theme,
+                          title: 'Probing Questions',
+                          icon: Icons.contact_support_outlined,
+                          content: _parseInsight(_liveGuidance, 'GUIDANCE'),
                         ),
                       ],
                     ),
@@ -565,5 +576,72 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildInsightSection({
+    required ThemeData theme,
+    required String title,
+    required IconData icon,
+    required String content,
+  }) {
+    if (content.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            icon,
+            size: 14,
+            color: theme.colorScheme.tertiary.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title.toUpperCase(),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.tertiary.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                content,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _parseInsight(String fullText, String tag) {
+    try {
+      final tagPattern = '$tag:';
+      if (!fullText.contains(tagPattern)) return "";
+
+      final start = fullText.indexOf(tagPattern) + tagPattern.length;
+      final remaining = fullText.substring(start);
+
+      // Find the next tag to stop at
+      final nextTagIndex = remaining.indexOf(RegExp(r'[A-Z ]+:'));
+      final content = nextTagIndex != -1
+          ? remaining.substring(0, nextTagIndex)
+          : remaining;
+
+      return content.trim();
+    } catch (e) {
+      return "";
+    }
   }
 }

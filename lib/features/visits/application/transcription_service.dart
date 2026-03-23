@@ -24,9 +24,9 @@ class TranscriptionService {
       ),
       model: sherpa.OnlineModelConfig(
         transducer: sherpa.OnlineTransducerModelConfig(
-          encoder: '$modelPath/encoder-epoch-99-avg-1.int8.onnx',
-          decoder: '$modelPath/decoder-epoch-99-avg-1.onnx',
-          joiner: '$modelPath/joiner-epoch-99-avg-1.onnx',
+          encoder: '$modelPath/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
+          decoder: '$modelPath/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
+          joiner: '$modelPath/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
         ),
         tokens: '$modelPath/tokens.txt',
         numThreads: 1,
@@ -128,9 +128,9 @@ class TranscriptionService {
     // This only works if the app has access to the project root (e.g. during local desktop development).
     final localDir = Directory('models/sherpa');
     if (await localDir.exists()) {
-      final encoder = File('${localDir.path}/encoder-epoch-99-avg-1.int8.onnx');
-      final decoder = File('${localDir.path}/decoder-epoch-99-avg-1.onnx');
-      final joiner = File('${localDir.path}/joiner-epoch-99-avg-1.onnx');
+      final encoder = File('${localDir.path}/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
+      final decoder = File('${localDir.path}/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
+      final joiner = File('${localDir.path}/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
       final tokens = File('${localDir.path}/tokens.txt');
 
       if (await encoder.exists() &&
@@ -155,20 +155,20 @@ class TranscriptionService {
         const hfUrl =
             'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/resolve/main';
 
-        if (!await File('${modelDir.path}/encoder-epoch-99-avg-1.int8.onnx')
+        if (!await File('${modelDir.path}/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx')
             .exists()) {
-          await _downloadFile('$hfUrl/encoder-epoch-99-avg-1.int8.onnx',
-              '${modelDir.path}/encoder-epoch-99-avg-1.int8.onnx');
+          await _downloadFile('$hfUrl/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
+              '${modelDir.path}/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
         }
-        if (!await File('${modelDir.path}/decoder-epoch-99-avg-1.onnx')
+        if (!await File('${modelDir.path}/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx')
             .exists()) {
-          await _downloadFile('$hfUrl/decoder-epoch-99-avg-1.onnx',
-              '${modelDir.path}/decoder-epoch-99-avg-1.onnx');
+          await _downloadFile('$hfUrl/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
+              '${modelDir.path}/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
         }
-        if (!await File('${modelDir.path}/joiner-epoch-99-avg-1.onnx')
+        if (!await File('${modelDir.path}/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx')
             .exists()) {
-          await _downloadFile('$hfUrl/joiner-epoch-99-avg-1.onnx',
-              '${modelDir.path}/joiner-epoch-99-avg-1.onnx');
+          await _downloadFile('$hfUrl/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
+              '${modelDir.path}/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
         }
         if (!await File('${modelDir.path}/tokens.txt').exists()) {
           await _downloadFile(
@@ -181,9 +181,9 @@ class TranscriptionService {
 
   Future<bool> _tryCopyFromAssets(String targetPath) async {
     final files = [
-      'encoder-epoch-99-avg-1.int8.onnx',
-      'decoder-epoch-99-avg-1.onnx',
-      'joiner-epoch-99-avg-1.onnx',
+      'encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
+      'decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
+      'joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
       'tokens.txt'
     ];
 

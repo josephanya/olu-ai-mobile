@@ -37,9 +37,9 @@ The application uses Sherpa-ONNX with a streaming Zipformer model for real-time,
 
 1. Create a folder: `models/sherpa` in the root of the project.
 2. Download the following files from [Hugging Face](https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/tree/main):
-   - `encoder-epoch-99-avg-1.int8.onnx`
-   - `decoder-epoch-99-avg-1.onnx`
-   - `joiner-epoch-99-avg-1.onnx`
+   - `encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx`
+   - `decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx`
+   - `joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx`
    - `tokens.txt`
 3. Place these files inside the `models/sherpa` folder.
 

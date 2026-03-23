@@ -1,3 +1,4 @@
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -44,16 +45,46 @@ class TtsService {
     debugPrint('TtsService initialised');
   }
 
-  /// Speaks [text] through the active audio output (Bluetooth earpiece / speaker).
+  /// Checks if a headset (Bluetooth or wired) is currently connected.
   ///
-  /// If [text] is identical to the last spoken suggestion, the call is a no-op
-  /// so that the periodic guidance timer does not re-read the same hint on
-  /// every tick.
+  /// This ensures "Whisper Mode" — preventing clinician guidance from playing
+  /// through the device's built-in speaker where a patient might hear it.
+  Future<bool> _isHeadsetConnected() async {
+    try {
+      final session = await AudioSession.instance;
+      final devices = await session.getDevices();
+
+      // Check for Bluetooth or wired headsets in the output devices
+      return devices.any((device) =>
+          device.type == AudioDeviceType.bluetoothA2dp ||
+          device.type == AudioDeviceType.wiredHeadset ||
+          device.type == AudioDeviceType.wiredHeadphones ||
+          device.type == AudioDeviceType.bluetoothLe ||
+          device.type == AudioDeviceType.bluetoothSco);
+    } catch (e) {
+      debugPrint('Error checking audio devices: $e');
+      // Fallback: assume NOT connected for safety in privacy-first context
+      return false;
+    }
+  }
+
+  /// Speaks [text] ONLY if a headset is connected (Whisper Mode).
+  ///
+  /// If no headset is connected, this call is a no-op to protect patient
+  /// privacy.
   Future<void> speak(String text) async {
     if (!_isInitialized) await initialize();
 
     final cleaned = text.trim();
     if (cleaned.isEmpty || cleaned == _lastSpokenText) return;
+
+    // WHISPER MODE CHECK:
+    // Only play if a headset is connected to avoid playing through the speaker.
+    final hasHeadset = await _isHeadsetConnected();
+    if (!hasHeadset) {
+      debugPrint('TTS inhibited: No headset connected (Whisper Mode)');
+      return;
+    }
 
     // Cancel any in-progress speech before starting the new utterance.
     await _tts.stop();

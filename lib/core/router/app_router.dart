@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:olu_ai/features/setup/presentation/setup_screen.dart';
 import 'package:olu_ai/features/patients/presentation/patient_list_screen.dart';
 import 'package:olu_ai/features/patients/presentation/patient_form_screen.dart';
 import 'package:olu_ai/features/visits/presentation/active_visit_screen.dart';
@@ -11,6 +12,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
+        builder: (context, state) => const SetupScreen(),
+      ),
+      GoRoute(
+        path: '/home',
         builder: (context, state) => const PatientListScreen(),
         routes: [
           GoRoute(

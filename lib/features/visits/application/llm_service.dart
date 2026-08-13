@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:llama_cpp_dart/llama_cpp_dart.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -52,36 +51,29 @@ class LlmService {
     }
 
     // 2. Check for the model in the app's documents directory
+    //    (downloaded by ModelManagerService during setup)
     final docDir = await getApplicationDocumentsDirectory();
     final persistentPath = '${docDir.path}/medical_llama.gguf';
-    final file = File(persistentPath);
 
-    if (await file.exists()) {
+    if (await File(persistentPath).exists()) {
       return persistentPath;
     }
 
-    // 3. Try to copy from bundled assets (for emulator/mobile dev if files were added)
-    final copied = await _tryCopyFromAssets(persistentPath);
-    if (copied) {
-      return persistentPath;
-    }
-
-    // 4. Fallback to download
-    return _downloadModelIfNeeded();
-  }
-
-  Future<bool> _tryCopyFromAssets(String targetPath) async {
+    // 3. Try to copy from bundled assets (for emulator/mobile dev)
     try {
       final data = await rootBundle.load('models/llm/medical_llama.gguf');
       final bytes =
           data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-      await File(targetPath).writeAsBytes(bytes);
+      await File(persistentPath).writeAsBytes(bytes);
       debugPrint('Copied medical_llama.gguf from assets');
-      return true;
-    } catch (e) {
-      debugPrint('Medical LLM model not bundled in assets.');
-      return false;
+      return persistentPath;
+    } catch (_) {
+      // Not bundled
     }
+
+    throw Exception(
+      'LLM model not found. Please run the setup process first.',
+    );
   }
 
   Future<String> getLiveGuidance(String transcript) async {
@@ -204,25 +196,6 @@ Use simple language appropriate for community health settings.
       }
     }
     return _currentCompleter!.future;
-  }
-
-  Future<String> _downloadModelIfNeeded() async {
-    final docDir = await getApplicationDocumentsDirectory();
-    final modelPath = '${docDir.path}/medical_llama.gguf';
-    final file = File(modelPath);
-
-    if (!await file.exists()) {
-      const url =
-          'https://huggingface.co/alpha-ai/LLAMA3-3B-Medical-COT-GGUF/resolve/main/LLAMA3-3B-Medical-COT.Q4_K_M.gguf';
-
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        await file.writeAsBytes(response.bodyBytes);
-      } else {
-        throw Exception('Failed to download LLM model');
-      }
-    }
-    return modelPath;
   }
 
   void dispose() {

@@ -1,11 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/widgets.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
-import 'package:http/http.dart' as http;
 
 class TranscriptionService {
   sherpa.OnlineRecognizer? _onlineRecognizer;
@@ -124,8 +121,7 @@ class TranscriptionService {
   }
 
   Future<String> _getModelPath() async {
-    // Check for local project directory.
-    // This only works if the app has access to the project root (e.g. during local desktop development).
+    // Check for local project directory (desktop dev).
     final localDir = Directory('models/sherpa');
     if (await localDir.exists()) {
       final encoder = File('${localDir.path}/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
@@ -141,77 +137,17 @@ class TranscriptionService {
       }
     }
 
+    // Check app documents directory (downloaded by ModelManagerService).
     final docDir = await getApplicationDocumentsDirectory();
     final modelDir = Directory('${docDir.path}/sherpa_online_model');
 
-    if (!await modelDir.exists()) {
-      await modelDir.create(recursive: true);
-
-      // Check if we bundled the models as assets (for local development)
-      final bundled = await _tryCopyFromAssets(modelDir.path);
-
-      if (!bundled) {
-        debugPrint('Models not found in assets, starting download...');
-        const hfUrl =
-            'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/resolve/main';
-
-        if (!await File('${modelDir.path}/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx')
-            .exists()) {
-          await _downloadFile('$hfUrl/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
-              '${modelDir.path}/encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
-        }
-        if (!await File('${modelDir.path}/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx')
-            .exists()) {
-          await _downloadFile('$hfUrl/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
-              '${modelDir.path}/decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
-        }
-        if (!await File('${modelDir.path}/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx')
-            .exists()) {
-          await _downloadFile('$hfUrl/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
-              '${modelDir.path}/joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx');
-        }
-        if (!await File('${modelDir.path}/tokens.txt').exists()) {
-          await _downloadFile(
-              '$hfUrl/tokens.txt', '${modelDir.path}/tokens.txt');
-        }
-      }
+    if (await modelDir.exists()) {
+      return modelDir.path;
     }
-    return modelDir.path;
-  }
 
-  Future<bool> _tryCopyFromAssets(String targetPath) async {
-    final files = [
-      'encoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
-      'decoder-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
-      'joiner-epoch-99-avg-1-chunk-16-left-64.int8.onnx',
-      'tokens.txt'
-    ];
-
-    try {
-      for (final fileName in files) {
-        // We use a try-catch because rootBundle.load throws if asset is missing
-        final data = await rootBundle.load('models/sherpa/$fileName');
-        final bytes =
-            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-        await File('$targetPath/$fileName').writeAsBytes(bytes);
-        debugPrint('Copied $fileName from assets');
-      }
-      return true;
-    } catch (e) {
-      debugPrint('Models not bundled in assets.');
-      return false;
-    }
-  }
-
-  Future<void> _downloadFile(String url, String savePath) async {
-    debugPrint('File downoad started');
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final file = File(savePath);
-      await file.writeAsBytes(response.bodyBytes);
-    } else {
-      throw Exception('Failed to download file: $url');
-    }
+    throw Exception(
+      'Sherpa models not found. Please run the setup process first.',
+    );
   }
 }
 

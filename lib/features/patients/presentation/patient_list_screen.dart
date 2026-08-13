@@ -87,7 +87,7 @@ class PatientListScreen extends ConsumerWidget {
                 return SliverFillRemaining(
                   hasScrollBody: false,
                   child: _EmptyState(
-                    onAddPatient: () => context.push('/patients/new'),
+                    onAddPatient: () => context.push('/home/patients/new'),
                   ),
                 );
               }
@@ -103,7 +103,7 @@ class PatientListScreen extends ConsumerWidget {
                       village: patient.village,
                       index: index,
                       onTap: () {
-                        context.push('/patients/${patient.id}/visit');
+                        context.push('/home/patients/${patient.id}/visit');
                       },
                     );
                   },
@@ -140,7 +140,7 @@ class PatientListScreen extends ConsumerWidget {
 
       // ─── FAB ─────────────────────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/patients/new'),
+        onPressed: () => context.push('/home/patients/new'),
         icon: const Icon(Icons.person_add_rounded, size: 20),
         label: const Text('Add Patient'),
       ),

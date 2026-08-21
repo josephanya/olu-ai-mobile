@@ -5,11 +5,10 @@ import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart';
 
-const sourceSherpaLocal = 'sherpa_local';
-const sourceSaharaBenchmark = 'sahara_v2_benchmark';
-const sourceWhisper = 'whisper_api';
+const engineSherpa = 'sherpa_onnx';
+const engineSahara = 'sahara_v2_file_upload';
+const engineWhisper = 'whisper_api';
 
 const _saharaFileUploadEndpoint =
     'https://infer.voice.intron.io/file/v1/upload';
@@ -26,33 +25,30 @@ Future<void> main(List<String> args) async {
   }
 
   final runner = BenchmarkRunner(options: options);
-  final report = await runner.run();
-  stdout.writeln(
-    'Exported ${report.rows.length} benchmark rows to ${report.csvPath} and ${report.jsonPath}.',
-  );
-  for (final warning in report.warnings) {
-    stderr.writeln('warning: $warning');
+  try {
+    final report = await runner.run();
+    stdout.writeln(
+      'Exported ${report.rows.length} benchmark clip rows to ${report.csvPath} and ${report.jsonPath}.',
+    );
+  } finally {
+    runner.close();
   }
 }
 
 class BenchmarkRunnerOptions {
-  final String? databasePath;
-  final String? clipsPath;
+  final String clipsPath;
   final String outputDirectory;
   final String? saharaApiKey;
   final String? openAiApiKey;
   final String? sherpaCommand;
-  final bool requireThirdModel;
   final bool showHelp;
 
   const BenchmarkRunnerOptions({
-    this.databasePath,
-    this.clipsPath,
+    this.clipsPath = 'benchmark/manifest.json',
     this.outputDirectory = 'benchmark/results',
     this.saharaApiKey,
     this.openAiApiKey,
     this.sherpaCommand,
-    this.requireThirdModel = false,
     this.showHelp = false,
   });
 
@@ -68,34 +64,25 @@ class BenchmarkRunnerOptions {
       return null;
     }
 
+    var clipsPath = 'benchmark/manifest.json';
     var outputDirectory = 'benchmark/results';
-    String? databasePath;
-    String? clipsPath;
     String? saharaApiKey = environment['SAHARA_API_KEY'];
     String? openAiApiKey = environment['OPENAI_API_KEY'];
     String? sherpaCommand;
-    var requireThirdModel = false;
 
     for (var i = 0; i < args.length; i++) {
       final arg = args[i];
       if (arg == '--help' || arg == '-h') {
         return const BenchmarkRunnerOptions(showHelp: true);
       }
-      if (arg == '--require-third-model') {
-        requireThirdModel = true;
-        continue;
-      }
 
-      final databaseValue = readValue('--database', i);
       final clipsValue = readValue('--clips', i);
       final outputValue = readValue('--out', i);
       final saharaValue = readValue('--sahara-api-key', i);
       final openAiValue = readValue('--openai-api-key', i);
       final sherpaValue = readValue('--sherpa-command', i);
 
-      if (databaseValue != null) {
-        databasePath = databaseValue;
-      } else if (clipsValue != null) {
+      if (clipsValue != null) {
         clipsPath = clipsValue;
       } else if (outputValue != null) {
         outputDirectory = outputValue;
@@ -111,18 +98,15 @@ class BenchmarkRunnerOptions {
     }
 
     return BenchmarkRunnerOptions(
-      databasePath: databasePath,
       clipsPath: clipsPath,
       outputDirectory: outputDirectory,
       saharaApiKey: _blankToNull(saharaApiKey),
       openAiApiKey: _blankToNull(openAiApiKey),
       sherpaCommand: _blankToNull(sherpaCommand),
-      requireThirdModel: requireThirdModel,
     );
   }
 
   static const _optionsWithValues = {
-    '--database',
     '--clips',
     '--out',
     '--sahara-api-key',
@@ -133,38 +117,32 @@ class BenchmarkRunnerOptions {
   static const usage = '''
 Usage:
   dart run tool/benchmark_runner.dart \\
-    --database /path/to/db.sqlite \\
-    --clips benchmark/clips.json \\
+    --clips benchmark/manifest.json \\
     --out benchmark/results \\
+    --sherpa-command "./scripts/run_sherpa.sh {audio}" \\
+    --sahara-api-key <key> \\
     --openai-api-key <key>
 
 Inputs:
-  --database           Optional Olu AI SQLite database. Rows are exported only
-                       when both sherpa_local and sahara_v2_benchmark transcripts exist.
-  --clips              Optional held-out benchmark manifest JSON.
+  --clips              Dedicated benchmark manifest JSON. Defaults to benchmark/manifest.json.
   --out                Output directory. Defaults to benchmark/results.
+  --sherpa-command     Local command used to transcribe each clip with Sherpa-ONNX.
+                       Use {audio} as a placeholder for the audio path.
   --sahara-api-key     Sahara key. Defaults to SAHARA_API_KEY.
   --openai-api-key     Whisper API key. Defaults to OPENAI_API_KEY.
-  --sherpa-command     Optional local command for missing Sherpa transcripts.
-                       Use {audio} as a placeholder for the audio path.
-  --require-third-model Fails if no Whisper row can be produced for a clip.
 
 Manifest shape:
   {
     "clips": [
       {
         "clipId": "clip-001",
-        "visitId": 12,
         "audioPath": "benchmark/audio/clip-001.wav",
-        "referenceTranscript": "hand transcribed text",
+        "referenceTranscript": "hand-written scripted reference text",
         "languagePair": "sw-en",
         "accentRegion": "Nairobi",
         "noiseLevel": "clinic",
         "device": "Pixel 7",
-        "captureMode": "offline",
-        "sherpaTranscript": "optional precomputed text",
-        "saharaTranscript": "optional precomputed text",
-        "whisperTranscript": "optional precomputed text"
+        "captureMode": "scripted_test_clip"
       }
     ]
   }
@@ -181,52 +159,17 @@ class BenchmarkRunner {
   }) : _httpClient = httpClient ?? http.Client();
 
   Future<BenchmarkReport> run() async {
-    final warnings = <String>[];
+    _validateEngineInputs();
+
     final clips = await _loadClipManifest(options.clipsPath);
-    final clipsByVisitId = {
-      for (final clip in clips.where((clip) => clip.visitId != null))
-        clip.visitId!: clip,
-    };
     final rows = <BenchmarkExportRow>[];
-    final emitted = <String>{};
-
-    if (options.databasePath != null) {
-      rows.addAll(_loadDatabaseRows(
-        databasePath: options.databasePath!,
-        referencesByVisitId: clipsByVisitId,
-        warnings: warnings,
-      ));
-      emitted.addAll(rows.map((row) => '${row.clipId}:${row.model}'));
-    }
-
     for (final clip in clips) {
-      final candidates = await _transcriptsForClip(clip, warnings);
-      for (final candidate in candidates) {
-        final key = '${clip.clipId}:${candidate.model}';
-        if (!emitted.add(key)) continue;
-        rows.add(BenchmarkExportRow.fromCandidate(clip, candidate));
-      }
-    }
-
-    final whisperClipIds = rows
-        .where((row) => row.model == sourceWhisper)
-        .map((row) => row.clipId)
-        .toSet();
-    if (options.requireThirdModel) {
-      final missing = clips
-          .where((clip) => !whisperClipIds.contains(clip.clipId))
-          .map((clip) => clip.clipId)
-          .toList();
-      if (missing.isNotEmpty) {
-        throw BenchmarkRunnerException(
-          'Missing Whisper baseline rows for: ${missing.join(', ')}',
-        );
-      }
-    } else if (clips.isNotEmpty && whisperClipIds.length < clips.length) {
-      warnings.add(
-        'Whisper baseline missing for ${clips.length - whisperClipIds.length} clip(s). '
-        'Provide whisperTranscript values, OPENAI_API_KEY, or --openai-api-key.',
-      );
+      final results = <String, TranscriptCandidate>{
+        engineSherpa: await _runSherpaCommand(clip),
+        engineSahara: await _runSaharaFileUpload(clip),
+        engineWhisper: await _runWhisper(clip),
+      };
+      rows.add(BenchmarkExportRow.fromResults(clip, results));
     }
 
     final outputDirectory = Directory(options.outputDirectory);
@@ -239,7 +182,6 @@ class BenchmarkRunner {
       rows: rows,
       csvPath: csvPath,
       jsonPath: jsonPath,
-      warnings: warnings,
     );
   }
 
@@ -247,129 +189,27 @@ class BenchmarkRunner {
     _httpClient.close();
   }
 
-  List<BenchmarkExportRow> _loadDatabaseRows({
-    required String databasePath,
-    required Map<int, ClipMetadata> referencesByVisitId,
-    required List<String> warnings,
-  }) {
-    final databaseFile = File(databasePath);
-    if (!databaseFile.existsSync()) {
-      throw BenchmarkRunnerException('Database does not exist: $databasePath');
+  void _validateEngineInputs() {
+    final missing = <String>[];
+    if (options.sherpaCommand == null) missing.add('--sherpa-command');
+    if (options.saharaApiKey == null) {
+      missing.add('--sahara-api-key or SAHARA_API_KEY');
     }
-
-    final database = sqlite3.open(databasePath);
-    try {
-      final result = database.select('''
-        SELECT
-          v.id AS visit_id,
-          v.audio_path AS audio_path,
-          v.language_code AS language_code,
-          MAX(CASE WHEN t.source = ? THEN t.transcript END) AS sherpa_transcript,
-          MAX(CASE WHEN t.source = ? THEN t.transcript END) AS sahara_transcript,
-          MAX(CASE WHEN t.source = ? THEN t.processing_latency_ms END) AS sahara_latency_ms
-        FROM visits v
-        INNER JOIN transcriptions t ON t.visit_id = v.id
-        GROUP BY v.id
-        HAVING sherpa_transcript IS NOT NULL
-          AND sahara_transcript IS NOT NULL
-          AND LENGTH(sherpa_transcript) > 0
-          AND LENGTH(sahara_transcript) > 0
-      ''', [sourceSherpaLocal, sourceSaharaBenchmark, sourceSaharaBenchmark]);
-
-      final rows = <BenchmarkExportRow>[];
-      for (final row in result) {
-        final visitId = row['visit_id'] as int;
-        final clip = referencesByVisitId[visitId];
-        if (clip == null) {
-          warnings.add(
-            'Visit $visitId has both stored transcripts but no hand reference in the clip manifest.',
-          );
-          continue;
-        }
-
-        final audioPath = row['audio_path'] as String? ?? clip.audioPath;
-        final languagePair =
-            clip.languagePair ?? row['language_code'] as String?;
-        final enrichedClip = clip.copyWith(
-          audioPath: audioPath,
-          languagePair: languagePair,
-        );
-        rows
-          ..add(BenchmarkExportRow.fromCandidate(
-            enrichedClip,
-            TranscriptCandidate(
-              model: sourceSherpaLocal,
-              transcript: row['sherpa_transcript'] as String,
-            ),
-          ))
-          ..add(BenchmarkExportRow.fromCandidate(
-            enrichedClip,
-            TranscriptCandidate(
-              model: sourceSaharaBenchmark,
-              transcript: row['sahara_transcript'] as String,
-              latencyMs: row['sahara_latency_ms'] as int?,
-            ),
-          ));
-      }
-      return rows;
-    } finally {
-      database.dispose();
+    if (options.openAiApiKey == null) {
+      missing.add('--openai-api-key or OPENAI_API_KEY');
     }
-  }
-
-  Future<List<TranscriptCandidate>> _transcriptsForClip(
-    ClipMetadata clip,
-    List<String> warnings,
-  ) async {
-    final candidates = <TranscriptCandidate>[];
-    final sherpaTranscript = clip.transcriptFor(sourceSherpaLocal);
-    if (sherpaTranscript != null) {
-      candidates.add(TranscriptCandidate(
-        model: sourceSherpaLocal,
-        transcript: sherpaTranscript,
-        latencyMs: clip.latencyFor(sourceSherpaLocal),
-      ));
-    } else if (options.sherpaCommand != null && clip.audioPath != null) {
-      candidates.add(await _runSherpaCommand(clip));
+    if (missing.isNotEmpty) {
+      throw BenchmarkRunnerException(
+        'Standalone benchmarks run all three engines fresh. Missing: ${missing.join(', ')}.',
+      );
     }
-
-    final saharaTranscript = clip.transcriptFor(sourceSaharaBenchmark);
-    if (saharaTranscript != null) {
-      candidates.add(TranscriptCandidate(
-        model: sourceSaharaBenchmark,
-        transcript: saharaTranscript,
-        latencyMs: clip.latencyFor(sourceSaharaBenchmark),
-      ));
-    } else if (options.saharaApiKey != null && clip.audioPath != null) {
-      candidates.add(await _runSaharaFileUpload(clip));
-    }
-
-    final whisperTranscript = clip.transcriptFor(sourceWhisper);
-    if (whisperTranscript != null) {
-      candidates.add(TranscriptCandidate(
-        model: sourceWhisper,
-        transcript: whisperTranscript,
-        latencyMs: clip.latencyFor(sourceWhisper),
-      ));
-    } else if (options.openAiApiKey != null && clip.audioPath != null) {
-      candidates.add(await _runWhisper(clip));
-    }
-
-    if (candidates.isEmpty) {
-      warnings.add('No transcripts available for clip ${clip.clipId}.');
-    }
-    return candidates;
   }
 
   Future<TranscriptCandidate> _runSherpaCommand(ClipMetadata clip) async {
-    final audioPath = clip.audioPath;
-    if (audioPath == null) {
-      throw BenchmarkRunnerException('Clip ${clip.clipId} has no audioPath.');
-    }
-
     final command = options.sherpaCommand!.contains('{audio}')
-        ? options.sherpaCommand!.replaceAll('{audio}', _shellQuote(audioPath))
-        : '${options.sherpaCommand!} ${_shellQuote(audioPath)}';
+        ? options.sherpaCommand!
+            .replaceAll('{audio}', _shellQuote(clip.audioPath))
+        : '${options.sherpaCommand!} ${_shellQuote(clip.audioPath)}';
     final startedAt = DateTime.now();
     final result = await Process.run('/bin/sh', ['-c', command]);
     final completedAt = DateTime.now();
@@ -378,29 +218,31 @@ class BenchmarkRunner {
         'Sherpa command failed for ${clip.clipId}: ${result.stderr}',
       );
     }
+    final transcript = result.stdout.toString().trim();
+    if (transcript.isEmpty) {
+      throw BenchmarkRunnerException(
+        'Sherpa command returned an empty transcript for ${clip.clipId}.',
+      );
+    }
     return TranscriptCandidate(
-      model: sourceSherpaLocal,
-      transcript: result.stdout.toString().trim(),
+      transcript: transcript,
       latencyMs: completedAt.difference(startedAt).inMilliseconds,
     );
   }
 
   Future<TranscriptCandidate> _runSaharaFileUpload(ClipMetadata clip) async {
-    final audioPath = clip.audioPath;
-    if (audioPath == null) {
-      throw BenchmarkRunnerException('Clip ${clip.clipId} has no audioPath.');
-    }
-
     final startedAt = DateTime.now();
     final request = http.MultipartRequest(
       'POST',
       Uri.parse(_saharaFileUploadEndpoint),
     )
       ..headers['Authorization'] = 'Bearer ${options.saharaApiKey}'
-      ..fields['audio_file_name'] = p.basename(audioPath)
+      ..fields['audio_file_name'] = p.basename(clip.audioPath)
       ..fields['use_language_asr_input'] = clip.languagePair ?? 'sw'
-      ..files
-          .add(await http.MultipartFile.fromPath('audio_file_blob', audioPath));
+      ..files.add(await http.MultipartFile.fromPath(
+        'audio_file_blob',
+        clip.audioPath,
+      ));
 
     final streamedResponse = await _httpClient.send(request);
     final response = await http.Response.fromStream(streamedResponse);
@@ -422,7 +264,6 @@ class BenchmarkRunner {
     final transcript = await _pollSahara(fileId, clip.clipId);
     final completedAt = DateTime.now();
     return TranscriptCandidate(
-      model: sourceSaharaBenchmark,
       transcript: transcript,
       latencyMs: completedAt.difference(startedAt).inMilliseconds,
     );
@@ -459,11 +300,6 @@ class BenchmarkRunner {
   }
 
   Future<TranscriptCandidate> _runWhisper(ClipMetadata clip) async {
-    final audioPath = clip.audioPath;
-    if (audioPath == null) {
-      throw BenchmarkRunnerException('Clip ${clip.clipId} has no audioPath.');
-    }
-
     final startedAt = DateTime.now();
     final request = http.MultipartRequest(
       'POST',
@@ -471,7 +307,7 @@ class BenchmarkRunner {
     )
       ..headers['Authorization'] = 'Bearer ${options.openAiApiKey}'
       ..fields['model'] = 'whisper-1'
-      ..files.add(await http.MultipartFile.fromPath('file', audioPath));
+      ..files.add(await http.MultipartFile.fromPath('file', clip.audioPath));
 
     final response =
         await http.Response.fromStream(await _httpClient.send(request));
@@ -488,7 +324,6 @@ class BenchmarkRunner {
     }
     final completedAt = DateTime.now();
     return TranscriptCandidate(
-      model: sourceWhisper,
       transcript: transcript,
       latencyMs: completedAt.difference(startedAt).inMilliseconds,
     );
@@ -497,33 +332,38 @@ class BenchmarkRunner {
 
 class ClipMetadata {
   final String clipId;
-  final int? visitId;
-  final String? audioPath;
+  final String audioPath;
   final String referenceTranscript;
   final String? languagePair;
   final String? accentRegion;
   final String? noiseLevel;
   final String? device;
   final String? captureMode;
-  final Map<String, Object?> raw;
 
   const ClipMetadata({
     required this.clipId,
+    required this.audioPath,
     required this.referenceTranscript,
-    this.visitId,
-    this.audioPath,
     this.languagePair,
     this.accentRegion,
     this.noiseLevel,
     this.device,
     this.captureMode,
-    this.raw = const {},
   });
 
   factory ClipMetadata.fromJson(Map<String, Object?> json) {
     final clipId = _stringValue(json, const ['clipId', 'clip_id', 'id']);
     if (clipId == null || clipId.isEmpty) {
       throw BenchmarkRunnerException('Clip is missing clipId.');
+    }
+
+    final audioPath = _stringValue(json, const ['audioPath', 'audio_path']);
+    if (audioPath == null || audioPath.isEmpty) {
+      throw BenchmarkRunnerException('Clip $clipId is missing audioPath.');
+    }
+    if (!File(audioPath).existsSync()) {
+      throw BenchmarkRunnerException(
+          'Clip $clipId audio file does not exist: $audioPath');
     }
 
     final referenceTranscript = _stringValue(json, const [
@@ -538,126 +378,65 @@ class ClipMetadata {
         ]));
     if (referenceTranscript == null || referenceTranscript.trim().isEmpty) {
       throw BenchmarkRunnerException(
-        'Clip $clipId is missing a hand-transcribed reference.',
+        'Clip $clipId is missing a hand-written reference transcript.',
       );
     }
 
     return ClipMetadata(
       clipId: clipId,
-      visitId: _intValue(json['visitId'] ?? json['visit_id']),
-      audioPath: _stringValue(json, const ['audioPath', 'audio_path']),
+      audioPath: audioPath,
       referenceTranscript: referenceTranscript,
       languagePair: _stringValue(json, const ['languagePair', 'language_pair']),
       accentRegion: _stringValue(json, const ['accentRegion', 'accent_region']),
       noiseLevel: _stringValue(json, const ['noiseLevel', 'noise_level']),
       device: _stringValue(json, const ['device']),
       captureMode: _stringValue(json, const ['captureMode', 'capture_mode']),
-      raw: json,
     );
-  }
-
-  ClipMetadata copyWith({
-    String? audioPath,
-    String? languagePair,
-  }) {
-    return ClipMetadata(
-      clipId: clipId,
-      visitId: visitId,
-      audioPath: audioPath ?? this.audioPath,
-      referenceTranscript: referenceTranscript,
-      languagePair: languagePair ?? this.languagePair,
-      accentRegion: accentRegion,
-      noiseLevel: noiseLevel,
-      device: device,
-      captureMode: captureMode,
-      raw: raw,
-    );
-  }
-
-  String? transcriptFor(String source) {
-    return switch (source) {
-      sourceSherpaLocal => _stringValue(raw, const [
-            'sherpaTranscript',
-            'sherpa_transcript',
-          ]) ??
-          _readTextPath(_stringValue(raw, const [
-            'sherpaTranscriptPath',
-            'sherpa_transcript_path',
-          ])),
-      sourceSaharaBenchmark => _stringValue(raw, const [
-            'saharaTranscript',
-            'sahara_transcript',
-          ]) ??
-          _readTextPath(_stringValue(raw, const [
-            'saharaTranscriptPath',
-            'sahara_transcript_path',
-          ])),
-      sourceWhisper => _stringValue(raw, const [
-            'whisperTranscript',
-            'whisper_transcript',
-          ]) ??
-          _readTextPath(_stringValue(raw, const [
-            'whisperTranscriptPath',
-            'whisper_transcript_path',
-          ])),
-      _ => null,
-    };
-  }
-
-  int? latencyFor(String source) {
-    final value = switch (source) {
-      sourceSherpaLocal => raw['sherpaLatencyMs'] ?? raw['sherpa_latency_ms'],
-      sourceSaharaBenchmark =>
-        raw['saharaLatencyMs'] ?? raw['sahara_latency_ms'],
-      sourceWhisper => raw['whisperLatencyMs'] ?? raw['whisper_latency_ms'],
-      _ => null,
-    };
-    return _intValue(value);
   }
 }
 
 class TranscriptCandidate {
-  final String model;
   final String transcript;
-  final int? latencyMs;
+  final int latencyMs;
 
   const TranscriptCandidate({
-    required this.model,
     required this.transcript,
-    this.latencyMs,
+    required this.latencyMs,
   });
 }
 
 class BenchmarkExportRow {
   final String clipId;
-  final int? visitId;
-  final String model;
-  final double wer;
-  final int substitutions;
-  final int insertions;
-  final int deletions;
-  final int referenceWordCount;
-  final int? latencyMs;
+  final String audioPath;
   final String? languagePair;
   final String? accentRegion;
   final String? noiseLevel;
   final String? device;
   final String? captureMode;
   final String referenceTranscript;
-  final String hypothesisTranscript;
+  final String sherpaTranscript;
+  final String saharaTranscript;
+  final String whisperTranscript;
+  final WerStats sherpaWer;
+  final WerStats saharaWer;
+  final WerStats whisperWer;
+  final int sherpaLatencyMs;
+  final int saharaLatencyMs;
+  final int whisperLatencyMs;
 
   const BenchmarkExportRow({
     required this.clipId,
-    required this.model,
-    required this.wer,
-    required this.substitutions,
-    required this.insertions,
-    required this.deletions,
-    required this.referenceWordCount,
+    required this.audioPath,
     required this.referenceTranscript,
-    required this.hypothesisTranscript,
-    this.visitId,
-    this.latencyMs,
+    required this.sherpaTranscript,
+    required this.saharaTranscript,
+    required this.whisperTranscript,
+    required this.sherpaWer,
+    required this.saharaWer,
+    required this.whisperWer,
+    required this.sherpaLatencyMs,
+    required this.saharaLatencyMs,
+    required this.whisperLatencyMs,
     this.languagePair,
     this.accentRegion,
     this.noiseLevel,
@@ -665,49 +444,63 @@ class BenchmarkExportRow {
     this.captureMode,
   });
 
-  factory BenchmarkExportRow.fromCandidate(
+  factory BenchmarkExportRow.fromResults(
     ClipMetadata clip,
-    TranscriptCandidate candidate,
+    Map<String, TranscriptCandidate> results,
   ) {
-    final wer = computeWer(clip.referenceTranscript, candidate.transcript);
+    final sherpa = results[engineSherpa]!;
+    final sahara = results[engineSahara]!;
+    final whisper = results[engineWhisper]!;
     return BenchmarkExportRow(
       clipId: clip.clipId,
-      visitId: clip.visitId,
-      model: candidate.model,
-      wer: wer.rate,
-      substitutions: wer.substitutions,
-      insertions: wer.insertions,
-      deletions: wer.deletions,
-      referenceWordCount: wer.referenceWordCount,
-      latencyMs: candidate.latencyMs,
+      audioPath: clip.audioPath,
       languagePair: clip.languagePair,
       accentRegion: clip.accentRegion,
       noiseLevel: clip.noiseLevel,
       device: clip.device,
       captureMode: clip.captureMode,
       referenceTranscript: clip.referenceTranscript,
-      hypothesisTranscript: candidate.transcript,
+      sherpaTranscript: sherpa.transcript,
+      saharaTranscript: sahara.transcript,
+      whisperTranscript: whisper.transcript,
+      sherpaWer: computeWer(clip.referenceTranscript, sherpa.transcript),
+      saharaWer: computeWer(clip.referenceTranscript, sahara.transcript),
+      whisperWer: computeWer(clip.referenceTranscript, whisper.transcript),
+      sherpaLatencyMs: sherpa.latencyMs,
+      saharaLatencyMs: sahara.latencyMs,
+      whisperLatencyMs: whisper.latencyMs,
     );
   }
 
   Map<String, Object?> toJson() {
     return {
       'clip_id': clipId,
-      'visit_id': visitId,
-      'model': model,
-      'wer': wer,
-      'substitutions': substitutions,
-      'insertions': insertions,
-      'deletions': deletions,
-      'reference_word_count': referenceWordCount,
-      'latency_ms': latencyMs,
+      'audio_path': audioPath,
       'language_pair': languagePair,
       'accent_region': accentRegion,
       'noise_level': noiseLevel,
       'device': device,
       'capture_mode': captureMode,
       'reference_transcript': referenceTranscript,
-      'hypothesis_transcript': hypothesisTranscript,
+      'sherpa_wer': sherpaWer.rate,
+      'sahara_wer': saharaWer.rate,
+      'whisper_wer': whisperWer.rate,
+      'sherpa_substitutions': sherpaWer.substitutions,
+      'sahara_substitutions': saharaWer.substitutions,
+      'whisper_substitutions': whisperWer.substitutions,
+      'sherpa_insertions': sherpaWer.insertions,
+      'sahara_insertions': saharaWer.insertions,
+      'whisper_insertions': whisperWer.insertions,
+      'sherpa_deletions': sherpaWer.deletions,
+      'sahara_deletions': saharaWer.deletions,
+      'whisper_deletions': whisperWer.deletions,
+      'reference_word_count': sherpaWer.referenceWordCount,
+      'sherpa_latency_ms': sherpaLatencyMs,
+      'sahara_latency_ms': saharaLatencyMs,
+      'whisper_latency_ms': whisperLatencyMs,
+      'sherpa_transcript': sherpaTranscript,
+      'sahara_transcript': saharaTranscript,
+      'whisper_transcript': whisperTranscript,
     };
   }
 }
@@ -716,13 +509,11 @@ class BenchmarkReport {
   final List<BenchmarkExportRow> rows;
   final String csvPath;
   final String jsonPath;
-  final List<String> warnings;
 
   const BenchmarkReport({
     required this.rows,
     required this.csvPath,
     required this.jsonPath,
-    required this.warnings,
   });
 }
 
@@ -822,21 +613,32 @@ String toCsv(List<BenchmarkExportRow> rows) {
   final buffer = StringBuffer();
   const headers = [
     'clip_id',
-    'visit_id',
-    'model',
-    'wer',
-    'substitutions',
-    'insertions',
-    'deletions',
-    'reference_word_count',
-    'latency_ms',
+    'audio_path',
     'language_pair',
     'accent_region',
     'noise_level',
     'device',
     'capture_mode',
     'reference_transcript',
-    'hypothesis_transcript',
+    'sherpa_wer',
+    'sahara_wer',
+    'whisper_wer',
+    'sherpa_substitutions',
+    'sahara_substitutions',
+    'whisper_substitutions',
+    'sherpa_insertions',
+    'sahara_insertions',
+    'whisper_insertions',
+    'sherpa_deletions',
+    'sahara_deletions',
+    'whisper_deletions',
+    'reference_word_count',
+    'sherpa_latency_ms',
+    'sahara_latency_ms',
+    'whisper_latency_ms',
+    'sherpa_transcript',
+    'sahara_transcript',
+    'whisper_transcript',
   ];
   buffer.writeln(headers.join(','));
   for (final row in rows) {
@@ -852,8 +654,7 @@ String toPrettyJson(List<BenchmarkExportRow> rows) {
   return '${encoder.convert(rows.map((row) => row.toJson()).toList())}\n';
 }
 
-Future<List<ClipMetadata>> _loadClipManifest(String? clipsPath) async {
-  if (clipsPath == null) return const [];
+Future<List<ClipMetadata>> _loadClipManifest(String clipsPath) async {
   final file = File(clipsPath);
   if (!await file.exists()) {
     throw BenchmarkRunnerException('Clip manifest does not exist: $clipsPath');
@@ -918,13 +719,6 @@ String? _stringValue(Map<String, Object?> json, List<String> keys) {
     final value = json[key];
     if (value is String && value.trim().isNotEmpty) return value.trim();
   }
-  return null;
-}
-
-int? _intValue(Object? value) {
-  if (value is int) return value;
-  if (value is num) return value.toInt();
-  if (value is String) return int.tryParse(value);
   return null;
 }
 

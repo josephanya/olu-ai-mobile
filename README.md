@@ -30,7 +30,7 @@ Local Llama 3 medical model
    +-- Post-visit SOAP-style documentation
 ```
 
-For offline encounters, Olu AI can later upload the stored audio to Sahara for benchmark-only re-transcription. That benchmark transcript is stored beside the clinical transcript and must not update the CHW-facing note, guidance, or care workflow.
+Benchmarking is handled outside the clinical app with dedicated scripted test clips. Real patient encounter audio is not re-uploaded later for benchmark evaluation.
 
 ## What Works Offline
 
@@ -45,19 +45,19 @@ For offline encounters, Olu AI can later upload the stored audio to Sahara for b
 
 - Real-time Sahara v2 code-switching transcription when an API key is configured
 - Automatic fallback to local Sherpa-ONNX if Sahara cannot start or fails during an encounter
-- Background benchmark upload for offline encounters once connectivity returns
+- Standalone ASR benchmarking with scripted test clips
 
 ## Consent and Data Use
 
 Read [CONSENT.md](CONSENT.md) before recording patient encounters or enabling Sahara cloud transcription.
 
-The consent model separates three uses:
+The consent model separates care transcription from scripted benchmark testing:
 
 - Online transcription for care: patient audio may be streamed to Intron Sahara for transcription.
 - Offline transcription for care: transcription used for care stays on-device.
-- Benchmark/research upload: offline-recorded audio may later be uploaded to Sahara only for ASR evaluation, not for changing clinical output.
+- Benchmark testing: dedicated scripted clips are used for ASR evaluation instead of real patient encounter audio.
 
-Do not treat benchmark consent as implied by care transcription consent.
+Do not use patient encounter audio in benchmark exports.
 
 ## Sahara Integration
 
@@ -66,7 +66,7 @@ The app uses two Sahara surfaces:
 | Surface | Role |
 |---|---|
 | Streaming STT WebSocket | Online real-time encounter transcription |
-| File Upload REST API | Benchmark-only re-transcription of offline recordings |
+| File Upload REST API | Standalone ASR benchmarking for scripted test clips |
 
 Supported ASR source values stored with visits:
 
@@ -74,32 +74,31 @@ Supported ASR source values stored with visits:
 - `sherpa_local`
 - `mixed`
 
-Benchmark transcriptions are stored with source `sahara_v2_benchmark` and `usedForClinicalPipeline = false`.
-
 ## Benchmark Export
 
-Phase 5 adds a pure Dart benchmark runner at [tool/benchmark_runner.dart](tool/benchmark_runner.dart). It exports ASR comparison rows for clips with hand-transcribed references.
+The standalone benchmark runner at [tool/benchmark_runner.dart](tool/benchmark_runner.dart) exports ASR comparison rows for dedicated scripted clips listed in [benchmark/manifest.json](benchmark/manifest.json). It does not read the app database or any real encounter records.
 
 ```sh
 dart run tool/benchmark_runner.dart \
-  --database /path/to/db.sqlite \
-  --clips benchmark/clips.json \
+   --clips benchmark/manifest.json \
   --out benchmark/results \
+   --sherpa-command "./scripts/run_sherpa.sh {audio}" \
+   --sahara-api-key "$SAHARA_API_KEY" \
   --openai-api-key "$OPENAI_API_KEY"
 ```
 
-The runner can compare:
+For every manifest clip, the runner transcribes the audio fresh with:
 
 - local Sherpa-ONNX;
-- Sahara v2 benchmark transcripts;
-- a third baseline, currently OpenAI Whisper API or precomputed Whisper transcripts.
+- Sahara v2 file upload;
+- OpenAI Whisper API.
 
 Outputs:
 
 - `asr_benchmark.csv`
 - `asr_benchmark.json`
 
-Each row includes clip id, model, WER, latency, language pair, accent/region, noise level, device, capture mode, reference transcript, and hypothesis transcript. WER uses `(substitutions + insertions + deletions) / reference word count`.
+Each row represents one clip and includes metadata plus Sherpa, Sahara, and Whisper WER columns. WER uses `(substitutions + insertions + deletions) / reference word count`.
 
 ## Secrets
 
@@ -192,6 +191,6 @@ The app uses a Llama 3 3B medical model for local visit analysis and real-time g
 - [docs/SAHARA_INTEGRATION.md](docs/SAHARA_INTEGRATION.md): architecture and implementation spec
 - [CONSENT.md](CONSENT.md): patient consent and benchmark ethics notice
 - [tool/benchmark_runner.dart](tool/benchmark_runner.dart): ASR benchmark exporter
+- [benchmark/manifest.json](benchmark/manifest.json): scripted benchmark clip manifest template
 - [lib/services/sahara_streaming_client.dart](lib/services/sahara_streaming_client.dart): Sahara streaming client
 - [lib/services/asr_router.dart](lib/services/asr_router.dart): ASR source routing and fallback
-- [lib/services/benchmark_sync_worker.dart](lib/services/benchmark_sync_worker.dart): background Sahara benchmark upload worker

@@ -528,14 +528,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('sherpa_local'));
-  static const VerificationMeta _benchmarkSyncStatusMeta =
-      const VerificationMeta('benchmarkSyncStatus');
-  @override
-  late final GeneratedColumn<String> benchmarkSyncStatus =
-      GeneratedColumn<String>('benchmark_sync_status', aliasedName, false,
-          type: DriftSqlType.string,
-          requiredDuringInsert: false,
-          defaultValue: const Constant('pending_benchmark_reupload'));
   static const VerificationMeta _languageCodeMeta =
       const VerificationMeta('languageCode');
   @override
@@ -570,7 +562,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
         aiAnalysis,
         chwNotes,
         asrSource,
-        benchmarkSyncStatus,
         languageCode,
         createdAt,
         updatedAt
@@ -622,12 +613,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
       context.handle(_asrSourceMeta,
           asrSource.isAcceptableOrUnknown(data['asr_source']!, _asrSourceMeta));
     }
-    if (data.containsKey('benchmark_sync_status')) {
-      context.handle(
-          _benchmarkSyncStatusMeta,
-          benchmarkSyncStatus.isAcceptableOrUnknown(
-              data['benchmark_sync_status']!, _benchmarkSyncStatusMeta));
-    }
     if (data.containsKey('language_code')) {
       context.handle(
           _languageCodeMeta,
@@ -667,9 +652,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
           .read(DriftSqlType.string, data['${effectivePrefix}chw_notes']),
       asrSource: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}asr_source'])!,
-      benchmarkSyncStatus: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}benchmark_sync_status'])!,
       languageCode: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}language_code'])!,
       createdAt: attachedDatabase.typeMapping
@@ -694,7 +676,6 @@ class Visit extends DataClass implements Insertable<Visit> {
   final String? aiAnalysis;
   final String? chwNotes;
   final String asrSource;
-  final String benchmarkSyncStatus;
   final String languageCode;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -707,7 +688,6 @@ class Visit extends DataClass implements Insertable<Visit> {
       this.aiAnalysis,
       this.chwNotes,
       required this.asrSource,
-      required this.benchmarkSyncStatus,
       required this.languageCode,
       required this.createdAt,
       required this.updatedAt});
@@ -730,7 +710,6 @@ class Visit extends DataClass implements Insertable<Visit> {
       map['chw_notes'] = Variable<String>(chwNotes);
     }
     map['asr_source'] = Variable<String>(asrSource);
-    map['benchmark_sync_status'] = Variable<String>(benchmarkSyncStatus);
     map['language_code'] = Variable<String>(languageCode);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -755,7 +734,6 @@ class Visit extends DataClass implements Insertable<Visit> {
           ? const Value.absent()
           : Value(chwNotes),
       asrSource: Value(asrSource),
-      benchmarkSyncStatus: Value(benchmarkSyncStatus),
       languageCode: Value(languageCode),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -774,8 +752,6 @@ class Visit extends DataClass implements Insertable<Visit> {
       aiAnalysis: serializer.fromJson<String?>(json['aiAnalysis']),
       chwNotes: serializer.fromJson<String?>(json['chwNotes']),
       asrSource: serializer.fromJson<String>(json['asrSource']),
-      benchmarkSyncStatus:
-          serializer.fromJson<String>(json['benchmarkSyncStatus']),
       languageCode: serializer.fromJson<String>(json['languageCode']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -793,7 +769,6 @@ class Visit extends DataClass implements Insertable<Visit> {
       'aiAnalysis': serializer.toJson<String?>(aiAnalysis),
       'chwNotes': serializer.toJson<String?>(chwNotes),
       'asrSource': serializer.toJson<String>(asrSource),
-      'benchmarkSyncStatus': serializer.toJson<String>(benchmarkSyncStatus),
       'languageCode': serializer.toJson<String>(languageCode),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -809,7 +784,6 @@ class Visit extends DataClass implements Insertable<Visit> {
           Value<String?> aiAnalysis = const Value.absent(),
           Value<String?> chwNotes = const Value.absent(),
           String? asrSource,
-          String? benchmarkSyncStatus,
           String? languageCode,
           DateTime? createdAt,
           DateTime? updatedAt}) =>
@@ -822,7 +796,6 @@ class Visit extends DataClass implements Insertable<Visit> {
         aiAnalysis: aiAnalysis.present ? aiAnalysis.value : this.aiAnalysis,
         chwNotes: chwNotes.present ? chwNotes.value : this.chwNotes,
         asrSource: asrSource ?? this.asrSource,
-        benchmarkSyncStatus: benchmarkSyncStatus ?? this.benchmarkSyncStatus,
         languageCode: languageCode ?? this.languageCode,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
@@ -839,9 +812,6 @@ class Visit extends DataClass implements Insertable<Visit> {
           data.aiAnalysis.present ? data.aiAnalysis.value : this.aiAnalysis,
       chwNotes: data.chwNotes.present ? data.chwNotes.value : this.chwNotes,
       asrSource: data.asrSource.present ? data.asrSource.value : this.asrSource,
-      benchmarkSyncStatus: data.benchmarkSyncStatus.present
-          ? data.benchmarkSyncStatus.value
-          : this.benchmarkSyncStatus,
       languageCode: data.languageCode.present
           ? data.languageCode.value
           : this.languageCode,
@@ -861,7 +831,6 @@ class Visit extends DataClass implements Insertable<Visit> {
           ..write('aiAnalysis: $aiAnalysis, ')
           ..write('chwNotes: $chwNotes, ')
           ..write('asrSource: $asrSource, ')
-          ..write('benchmarkSyncStatus: $benchmarkSyncStatus, ')
           ..write('languageCode: $languageCode, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -879,7 +848,6 @@ class Visit extends DataClass implements Insertable<Visit> {
       aiAnalysis,
       chwNotes,
       asrSource,
-      benchmarkSyncStatus,
       languageCode,
       createdAt,
       updatedAt);
@@ -895,7 +863,6 @@ class Visit extends DataClass implements Insertable<Visit> {
           other.aiAnalysis == this.aiAnalysis &&
           other.chwNotes == this.chwNotes &&
           other.asrSource == this.asrSource &&
-          other.benchmarkSyncStatus == this.benchmarkSyncStatus &&
           other.languageCode == this.languageCode &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -910,7 +877,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
   final Value<String?> aiAnalysis;
   final Value<String?> chwNotes;
   final Value<String> asrSource;
-  final Value<String> benchmarkSyncStatus;
   final Value<String> languageCode;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -923,7 +889,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     this.aiAnalysis = const Value.absent(),
     this.chwNotes = const Value.absent(),
     this.asrSource = const Value.absent(),
-    this.benchmarkSyncStatus = const Value.absent(),
     this.languageCode = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -937,7 +902,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     this.aiAnalysis = const Value.absent(),
     this.chwNotes = const Value.absent(),
     this.asrSource = const Value.absent(),
-    this.benchmarkSyncStatus = const Value.absent(),
     this.languageCode = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -951,7 +915,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     Expression<String>? aiAnalysis,
     Expression<String>? chwNotes,
     Expression<String>? asrSource,
-    Expression<String>? benchmarkSyncStatus,
     Expression<String>? languageCode,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -965,8 +928,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       if (aiAnalysis != null) 'ai_analysis': aiAnalysis,
       if (chwNotes != null) 'chw_notes': chwNotes,
       if (asrSource != null) 'asr_source': asrSource,
-      if (benchmarkSyncStatus != null)
-        'benchmark_sync_status': benchmarkSyncStatus,
       if (languageCode != null) 'language_code': languageCode,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -982,7 +943,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       Value<String?>? aiAnalysis,
       Value<String?>? chwNotes,
       Value<String>? asrSource,
-      Value<String>? benchmarkSyncStatus,
       Value<String>? languageCode,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt}) {
@@ -995,7 +955,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       aiAnalysis: aiAnalysis ?? this.aiAnalysis,
       chwNotes: chwNotes ?? this.chwNotes,
       asrSource: asrSource ?? this.asrSource,
-      benchmarkSyncStatus: benchmarkSyncStatus ?? this.benchmarkSyncStatus,
       languageCode: languageCode ?? this.languageCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1029,10 +988,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     if (asrSource.present) {
       map['asr_source'] = Variable<String>(asrSource.value);
     }
-    if (benchmarkSyncStatus.present) {
-      map['benchmark_sync_status'] =
-          Variable<String>(benchmarkSyncStatus.value);
-    }
     if (languageCode.present) {
       map['language_code'] = Variable<String>(languageCode.value);
     }
@@ -1056,7 +1011,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
           ..write('aiAnalysis: $aiAnalysis, ')
           ..write('chwNotes: $chwNotes, ')
           ..write('asrSource: $asrSource, ')
-          ..write('benchmarkSyncStatus: $benchmarkSyncStatus, ')
           ..write('languageCode: $languageCode, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -1891,7 +1845,6 @@ typedef $$VisitsTableCreateCompanionBuilder = VisitsCompanion Function({
   Value<String?> aiAnalysis,
   Value<String?> chwNotes,
   Value<String> asrSource,
-  Value<String> benchmarkSyncStatus,
   Value<String> languageCode,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -1905,7 +1858,6 @@ typedef $$VisitsTableUpdateCompanionBuilder = VisitsCompanion Function({
   Value<String?> aiAnalysis,
   Value<String?> chwNotes,
   Value<String> asrSource,
-  Value<String> benchmarkSyncStatus,
   Value<String> languageCode,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -1973,10 +1925,6 @@ class $$VisitsTableFilterComposer
 
   ColumnFilters<String> get asrSource => $composableBuilder(
       column: $table.asrSource, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get benchmarkSyncStatus => $composableBuilder(
-      column: $table.benchmarkSyncStatus,
-      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get languageCode => $composableBuilder(
       column: $table.languageCode, builder: (column) => ColumnFilters(column));
@@ -2059,10 +2007,6 @@ class $$VisitsTableOrderingComposer
   ColumnOrderings<String> get asrSource => $composableBuilder(
       column: $table.asrSource, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get benchmarkSyncStatus => $composableBuilder(
-      column: $table.benchmarkSyncStatus,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get languageCode => $composableBuilder(
       column: $table.languageCode,
       builder: (column) => ColumnOrderings(column));
@@ -2123,9 +2067,6 @@ class $$VisitsTableAnnotationComposer
 
   GeneratedColumn<String> get asrSource =>
       $composableBuilder(column: $table.asrSource, builder: (column) => column);
-
-  GeneratedColumn<String> get benchmarkSyncStatus => $composableBuilder(
-      column: $table.benchmarkSyncStatus, builder: (column) => column);
 
   GeneratedColumn<String> get languageCode => $composableBuilder(
       column: $table.languageCode, builder: (column) => column);
@@ -2209,7 +2150,6 @@ class $$VisitsTableTableManager extends RootTableManager<
             Value<String?> aiAnalysis = const Value.absent(),
             Value<String?> chwNotes = const Value.absent(),
             Value<String> asrSource = const Value.absent(),
-            Value<String> benchmarkSyncStatus = const Value.absent(),
             Value<String> languageCode = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
@@ -2223,7 +2163,6 @@ class $$VisitsTableTableManager extends RootTableManager<
             aiAnalysis: aiAnalysis,
             chwNotes: chwNotes,
             asrSource: asrSource,
-            benchmarkSyncStatus: benchmarkSyncStatus,
             languageCode: languageCode,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -2237,7 +2176,6 @@ class $$VisitsTableTableManager extends RootTableManager<
             Value<String?> aiAnalysis = const Value.absent(),
             Value<String?> chwNotes = const Value.absent(),
             Value<String> asrSource = const Value.absent(),
-            Value<String> benchmarkSyncStatus = const Value.absent(),
             Value<String> languageCode = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
@@ -2251,7 +2189,6 @@ class $$VisitsTableTableManager extends RootTableManager<
             aiAnalysis: aiAnalysis,
             chwNotes: chwNotes,
             asrSource: asrSource,
-            benchmarkSyncStatus: benchmarkSyncStatus,
             languageCode: languageCode,
             createdAt: createdAt,
             updatedAt: updatedAt,

@@ -568,10 +568,6 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                         onPressed: () async {
                           final repository =
                               await ref.read(visitRepositoryProvider.future);
-                          final benchmarkSyncStatus =
-                              _asrSource == asrSourceSaharaStreaming
-                                  ? benchmarkStatusNotApplicable
-                                  : benchmarkStatusPending;
 
                           final visitId =
                               await repository.addVisit(VisitsCompanion.insert(
@@ -580,8 +576,6 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                             transcript: drift.Value(_transcript),
                             aiAnalysis: drift.Value(_aiAnalysis),
                             asrSource: drift.Value(_asrSource),
-                            benchmarkSyncStatus:
-                                drift.Value(benchmarkSyncStatus),
                             languageCode: const drift.Value('sw'),
                           ));
 

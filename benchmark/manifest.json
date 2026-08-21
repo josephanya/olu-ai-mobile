@@ -1,0 +1,34 @@
+{
+  "clips": [
+    {
+      "clipId": "scripted-001",
+      "audioPath": "benchmark/audio/scripted-001.wav",
+      "referenceTranscript": "Habari mama, today we are checking the mtoto fever and breathing.",
+      "languagePair": "sw-en",
+      "accentRegion": "Nairobi",
+      "noiseLevel": "quiet_room",
+      "device": "Pixel 7",
+      "captureMode": "scripted_test_clip"
+    },
+    {
+      "clipId": "scripted-002",
+      "audioPath": "benchmark/audio/scripted-002.wav",
+      "referenceTranscript": "Please tell me kama umechukua dawa ya pressure this morning.",
+      "languagePair": "sw-en",
+      "accentRegion": "Dar es Salaam",
+      "noiseLevel": "clinic_background",
+      "device": "Android phone internal mic",
+      "captureMode": "scripted_test_clip"
+    },
+    {
+      "clipId": "scripted-003",
+      "audioPath": "benchmark/audio/scripted-003.wav",
+      "referenceTranscript": "The patient says kichwa inauma and she has not eaten since jana.",
+      "languagePair": "sw-en",
+      "accentRegion": "Mombasa",
+      "noiseLevel": "outdoor_low_noise",
+      "device": "Low-cost Android phone",
+      "captureMode": "scripted_test_clip"
+    }
+  ]
+}

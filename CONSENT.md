@@ -2,7 +2,7 @@
 
 Olu AI is an offline-first clinical assistant for Community Health Workers (CHWs). It records patient encounters, transcribes speech, and uses an on-device medical LLM to generate clinical guidance and visit documentation.
 
-This notice separates three different data uses that must be explained clearly before recording begins.
+This notice separates clinical transcription from dedicated benchmark testing so patients are not asked to consent to research uploads of their encounter audio.
 
 ## 1. Online Transcription for Care
 
@@ -22,19 +22,19 @@ When the device is offline, or when Sahara streaming is unavailable, Olu AI uses
 
 Offline mode means the encounter can still be recorded and processed locally for clinical guidance and documentation. It does not require live cloud transcription for the patient's care workflow.
 
-## 3. Benchmark and Research Uploads
+## 3. Benchmark and Research Testing
 
-Offline-recorded audio may later be uploaded to Sahara for benchmarking or research evaluation when connectivity returns. This upload is separate from the transcript used for the patient's care.
+Olu AI benchmarks Sahara v2, local Sherpa-ONNX, and a third baseline model with dedicated scripted test clips. These clips are deliberately recorded for evaluation with known reference transcripts.
 
-Benchmark uploads are used to compare ASR model quality, such as Sahara v2, local Sherpa-ONNX, and a third baseline model. They must not update the patient's existing SOAP note, live guidance, or other CHW-facing clinical content.
+Patient encounter audio is not retained or uploaded for benchmark evaluation. Benchmark results must not update any patient's SOAP note, live guidance, or other CHW-facing clinical content.
 
-This is a distinct consent point. Patients should be asked separately whether their offline-recorded audio may later be uploaded for benchmarking or research purposes.
+If future research requires patient encounter audio, that workflow needs a separate protocol and consent process before it is enabled.
 
 ## Operational Requirements
 
 - Do not record a patient encounter until consent has been obtained under the workflow being used.
-- Do not treat benchmark or research consent as implied by consent for clinical transcription.
-- Do not include patient identifiers in benchmark exports unless the evaluation protocol explicitly requires it and the patient has consented.
+- Do not use patient encounter audio in benchmark exports.
+- Keep benchmark clips scripted and free of patient identifiers.
 - Keep API keys and service credentials out of source control. Use local environment variables or platform secure storage.
 - Review Intron's current terms and privacy documentation before deployment. The public policy pages could not be reliably extracted during this implementation, so this project does not make claims about Sahara retention periods, access controls, deletion timelines, or training use.
 
@@ -47,7 +47,3 @@ Online care mode:
 Offline care mode:
 
 > I would like to record this visit so Olu AI can transcribe it on this device and help prepare your visit notes. Is that okay?
-
-Benchmark upload:
-
-> If this visit is recorded offline, we may later upload the audio to Sahara only to compare transcription accuracy for research and benchmarking. This will not change your care note. Is that okay?

@@ -30,8 +30,6 @@ class Visits extends Table {
   TextColumn get chwNotes => text().nullable()();
   TextColumn get asrSource =>
       text().withDefault(const Constant('sherpa_local'))();
-  TextColumn get benchmarkSyncStatus =>
-      text().withDefault(const Constant('pending_benchmark_reupload'))();
   TextColumn get languageCode => text().withDefault(const Constant('sw'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -62,7 +60,6 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (m, from, to) async {
         if (from < 2) {
           await m.addColumn(visits, visits.asrSource);
-          await m.addColumn(visits, visits.benchmarkSyncStatus);
           await m.addColumn(visits, visits.languageCode);
           await m.createTable(transcriptions);
         }

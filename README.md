@@ -185,12 +185,3 @@ The app uses a Llama 3 3B medical model for local visit analysis and real-time g
 1. Create `models/llm` in the project root.
 2. Download `LLAMA3-3B-Medical-COT.Q4_K_M.gguf` from [Hugging Face](https://huggingface.co/alpha-ai/LLAMA3-3B-Medical-COT-GGUF/resolve/main/LLAMA3-3B-Medical-COT.Q4_K_M.gguf).
 3. Rename it to `medical_llama.gguf` and place it inside `models/llm`.
-
-## Key Project Files
-
-- [docs/SAHARA_INTEGRATION.md](docs/SAHARA_INTEGRATION.md): architecture and implementation spec
-- [CONSENT.md](CONSENT.md): patient consent and benchmark ethics notice
-- [tool/benchmark_runner.dart](tool/benchmark_runner.dart): ASR benchmark exporter
-- [benchmark/manifest.json](benchmark/manifest.json): scripted benchmark clip manifest template
-- [lib/services/sahara_streaming_client.dart](lib/services/sahara_streaming_client.dart): Sahara streaming client
-- [lib/services/asr_router.dart](lib/services/asr_router.dart): ASR source routing and fallback

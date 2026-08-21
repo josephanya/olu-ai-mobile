@@ -27,6 +27,7 @@ dependencies:
   flutter_tts: ^4.2.0
   audio_session: ^0.1.21
   google_fonts: ^6.2.1
+  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   flutter_test:

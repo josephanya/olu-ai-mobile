@@ -31,6 +31,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
   String? _aiAnalysis;
   String _liveGuidance = "";
   String _lastSpokenGuidance = "";
+  String _asrSource = asrSourceSherpaLocal;
   AsrSession? _asrSession;
   StreamSubscription? _transcriptionSubscription;
   Timer? _guidanceTimer;
@@ -340,6 +341,9 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                                 _durationTimer?.cancel();
                                 _guidanceTimer?.cancel();
                                 final path = await recorder.stopRecording();
+                                final asrSource =
+                                    _asrSession?.source.storageValue ??
+                                        asrSourceSherpaLocal;
                                 await _asrSession?.stop();
                                 _asrSession = null;
                                 await _transcriptionSubscription?.cancel();
@@ -348,6 +352,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                                 setState(() {
                                   _isRecording = false;
                                   _audioPath = path;
+                                  _asrSource = asrSource;
                                   _liveGuidance = "";
                                   _lastSpokenGuidance = "";
                                 });
@@ -358,6 +363,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                                   _transcript = "";
                                   _liveGuidance = "";
                                   _audioPath = path;
+                                  _asrSource = asrSourceSherpaLocal;
                                 });
 
                                 final audioStream =
@@ -562,13 +568,33 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                         onPressed: () async {
                           final repository =
                               await ref.read(visitRepositoryProvider.future);
+                          final benchmarkSyncStatus =
+                              _asrSource == asrSourceSaharaStreaming
+                                  ? benchmarkStatusNotApplicable
+                                  : benchmarkStatusPending;
 
-                          await repository.addVisit(VisitsCompanion.insert(
+                          final visitId =
+                              await repository.addVisit(VisitsCompanion.insert(
                             patientId: widget.patientId,
                             audioPath: drift.Value(_audioPath),
                             transcript: drift.Value(_transcript),
                             aiAnalysis: drift.Value(_aiAnalysis),
+                            asrSource: drift.Value(_asrSource),
+                            benchmarkSyncStatus:
+                                drift.Value(benchmarkSyncStatus),
+                            languageCode: const drift.Value('sw'),
                           ));
+
+                          await repository.addTranscription(
+                            TranscriptionsCompanion.insert(
+                              visitId: visitId,
+                              source: _asrSource,
+                              transcript: _transcript,
+                              languageCode: const drift.Value('sw'),
+                              completedAt: DateTime.now(),
+                              usedForClinicalPipeline: true,
+                            ),
+                          );
 
                           if (context.mounted) {
                             context.pop(); // Close bottom sheet

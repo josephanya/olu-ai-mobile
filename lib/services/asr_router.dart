@@ -8,6 +8,19 @@ import 'package:olu_ai/services/sahara_streaming_client.dart';
 
 enum AsrSource { saharaStreaming, sherpaLocal, mixed }
 
+extension AsrSourceStorage on AsrSource {
+  String get storageValue {
+    switch (this) {
+      case AsrSource.saharaStreaming:
+        return 'sahara_streaming';
+      case AsrSource.sherpaLocal:
+        return 'sherpa_local';
+      case AsrSource.mixed:
+        return 'mixed';
+    }
+  }
+}
+
 enum AsrRouteStatus {
   starting,
   saharaStreaming,

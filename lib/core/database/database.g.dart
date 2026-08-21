@@ -520,6 +520,30 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
   late final GeneratedColumn<String> chwNotes = GeneratedColumn<String>(
       'chw_notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _asrSourceMeta =
+      const VerificationMeta('asrSource');
+  @override
+  late final GeneratedColumn<String> asrSource = GeneratedColumn<String>(
+      'asr_source', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('sherpa_local'));
+  static const VerificationMeta _benchmarkSyncStatusMeta =
+      const VerificationMeta('benchmarkSyncStatus');
+  @override
+  late final GeneratedColumn<String> benchmarkSyncStatus =
+      GeneratedColumn<String>('benchmark_sync_status', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('pending_benchmark_reupload'));
+  static const VerificationMeta _languageCodeMeta =
+      const VerificationMeta('languageCode');
+  @override
+  late final GeneratedColumn<String> languageCode = GeneratedColumn<String>(
+      'language_code', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('sw'));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -545,6 +569,9 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
         transcript,
         aiAnalysis,
         chwNotes,
+        asrSource,
+        benchmarkSyncStatus,
+        languageCode,
         createdAt,
         updatedAt
       ];
@@ -591,6 +618,22 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
       context.handle(_chwNotesMeta,
           chwNotes.isAcceptableOrUnknown(data['chw_notes']!, _chwNotesMeta));
     }
+    if (data.containsKey('asr_source')) {
+      context.handle(_asrSourceMeta,
+          asrSource.isAcceptableOrUnknown(data['asr_source']!, _asrSourceMeta));
+    }
+    if (data.containsKey('benchmark_sync_status')) {
+      context.handle(
+          _benchmarkSyncStatusMeta,
+          benchmarkSyncStatus.isAcceptableOrUnknown(
+              data['benchmark_sync_status']!, _benchmarkSyncStatusMeta));
+    }
+    if (data.containsKey('language_code')) {
+      context.handle(
+          _languageCodeMeta,
+          languageCode.isAcceptableOrUnknown(
+              data['language_code']!, _languageCodeMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -622,6 +665,13 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
           .read(DriftSqlType.string, data['${effectivePrefix}ai_analysis']),
       chwNotes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}chw_notes']),
+      asrSource: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}asr_source'])!,
+      benchmarkSyncStatus: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}benchmark_sync_status'])!,
+      languageCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}language_code'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -643,6 +693,9 @@ class Visit extends DataClass implements Insertable<Visit> {
   final String? transcript;
   final String? aiAnalysis;
   final String? chwNotes;
+  final String asrSource;
+  final String benchmarkSyncStatus;
+  final String languageCode;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Visit(
@@ -653,6 +706,9 @@ class Visit extends DataClass implements Insertable<Visit> {
       this.transcript,
       this.aiAnalysis,
       this.chwNotes,
+      required this.asrSource,
+      required this.benchmarkSyncStatus,
+      required this.languageCode,
       required this.createdAt,
       required this.updatedAt});
   @override
@@ -673,6 +729,9 @@ class Visit extends DataClass implements Insertable<Visit> {
     if (!nullToAbsent || chwNotes != null) {
       map['chw_notes'] = Variable<String>(chwNotes);
     }
+    map['asr_source'] = Variable<String>(asrSource);
+    map['benchmark_sync_status'] = Variable<String>(benchmarkSyncStatus);
+    map['language_code'] = Variable<String>(languageCode);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -695,6 +754,9 @@ class Visit extends DataClass implements Insertable<Visit> {
       chwNotes: chwNotes == null && nullToAbsent
           ? const Value.absent()
           : Value(chwNotes),
+      asrSource: Value(asrSource),
+      benchmarkSyncStatus: Value(benchmarkSyncStatus),
+      languageCode: Value(languageCode),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -711,6 +773,10 @@ class Visit extends DataClass implements Insertable<Visit> {
       transcript: serializer.fromJson<String?>(json['transcript']),
       aiAnalysis: serializer.fromJson<String?>(json['aiAnalysis']),
       chwNotes: serializer.fromJson<String?>(json['chwNotes']),
+      asrSource: serializer.fromJson<String>(json['asrSource']),
+      benchmarkSyncStatus:
+          serializer.fromJson<String>(json['benchmarkSyncStatus']),
+      languageCode: serializer.fromJson<String>(json['languageCode']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -726,6 +792,9 @@ class Visit extends DataClass implements Insertable<Visit> {
       'transcript': serializer.toJson<String?>(transcript),
       'aiAnalysis': serializer.toJson<String?>(aiAnalysis),
       'chwNotes': serializer.toJson<String?>(chwNotes),
+      'asrSource': serializer.toJson<String>(asrSource),
+      'benchmarkSyncStatus': serializer.toJson<String>(benchmarkSyncStatus),
+      'languageCode': serializer.toJson<String>(languageCode),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -739,6 +808,9 @@ class Visit extends DataClass implements Insertable<Visit> {
           Value<String?> transcript = const Value.absent(),
           Value<String?> aiAnalysis = const Value.absent(),
           Value<String?> chwNotes = const Value.absent(),
+          String? asrSource,
+          String? benchmarkSyncStatus,
+          String? languageCode,
           DateTime? createdAt,
           DateTime? updatedAt}) =>
       Visit(
@@ -749,6 +821,9 @@ class Visit extends DataClass implements Insertable<Visit> {
         transcript: transcript.present ? transcript.value : this.transcript,
         aiAnalysis: aiAnalysis.present ? aiAnalysis.value : this.aiAnalysis,
         chwNotes: chwNotes.present ? chwNotes.value : this.chwNotes,
+        asrSource: asrSource ?? this.asrSource,
+        benchmarkSyncStatus: benchmarkSyncStatus ?? this.benchmarkSyncStatus,
+        languageCode: languageCode ?? this.languageCode,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
@@ -763,6 +838,13 @@ class Visit extends DataClass implements Insertable<Visit> {
       aiAnalysis:
           data.aiAnalysis.present ? data.aiAnalysis.value : this.aiAnalysis,
       chwNotes: data.chwNotes.present ? data.chwNotes.value : this.chwNotes,
+      asrSource: data.asrSource.present ? data.asrSource.value : this.asrSource,
+      benchmarkSyncStatus: data.benchmarkSyncStatus.present
+          ? data.benchmarkSyncStatus.value
+          : this.benchmarkSyncStatus,
+      languageCode: data.languageCode.present
+          ? data.languageCode.value
+          : this.languageCode,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -778,6 +860,9 @@ class Visit extends DataClass implements Insertable<Visit> {
           ..write('transcript: $transcript, ')
           ..write('aiAnalysis: $aiAnalysis, ')
           ..write('chwNotes: $chwNotes, ')
+          ..write('asrSource: $asrSource, ')
+          ..write('benchmarkSyncStatus: $benchmarkSyncStatus, ')
+          ..write('languageCode: $languageCode, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -785,8 +870,19 @@ class Visit extends DataClass implements Insertable<Visit> {
   }
 
   @override
-  int get hashCode => Object.hash(id, patientId, timestamp, audioPath,
-      transcript, aiAnalysis, chwNotes, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+      id,
+      patientId,
+      timestamp,
+      audioPath,
+      transcript,
+      aiAnalysis,
+      chwNotes,
+      asrSource,
+      benchmarkSyncStatus,
+      languageCode,
+      createdAt,
+      updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -798,6 +894,9 @@ class Visit extends DataClass implements Insertable<Visit> {
           other.transcript == this.transcript &&
           other.aiAnalysis == this.aiAnalysis &&
           other.chwNotes == this.chwNotes &&
+          other.asrSource == this.asrSource &&
+          other.benchmarkSyncStatus == this.benchmarkSyncStatus &&
+          other.languageCode == this.languageCode &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -810,6 +909,9 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
   final Value<String?> transcript;
   final Value<String?> aiAnalysis;
   final Value<String?> chwNotes;
+  final Value<String> asrSource;
+  final Value<String> benchmarkSyncStatus;
+  final Value<String> languageCode;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const VisitsCompanion({
@@ -820,6 +922,9 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     this.transcript = const Value.absent(),
     this.aiAnalysis = const Value.absent(),
     this.chwNotes = const Value.absent(),
+    this.asrSource = const Value.absent(),
+    this.benchmarkSyncStatus = const Value.absent(),
+    this.languageCode = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -831,6 +936,9 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     this.transcript = const Value.absent(),
     this.aiAnalysis = const Value.absent(),
     this.chwNotes = const Value.absent(),
+    this.asrSource = const Value.absent(),
+    this.benchmarkSyncStatus = const Value.absent(),
+    this.languageCode = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : patientId = Value(patientId);
@@ -842,6 +950,9 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     Expression<String>? transcript,
     Expression<String>? aiAnalysis,
     Expression<String>? chwNotes,
+    Expression<String>? asrSource,
+    Expression<String>? benchmarkSyncStatus,
+    Expression<String>? languageCode,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -853,6 +964,10 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       if (transcript != null) 'transcript': transcript,
       if (aiAnalysis != null) 'ai_analysis': aiAnalysis,
       if (chwNotes != null) 'chw_notes': chwNotes,
+      if (asrSource != null) 'asr_source': asrSource,
+      if (benchmarkSyncStatus != null)
+        'benchmark_sync_status': benchmarkSyncStatus,
+      if (languageCode != null) 'language_code': languageCode,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -866,6 +981,9 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       Value<String?>? transcript,
       Value<String?>? aiAnalysis,
       Value<String?>? chwNotes,
+      Value<String>? asrSource,
+      Value<String>? benchmarkSyncStatus,
+      Value<String>? languageCode,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt}) {
     return VisitsCompanion(
@@ -876,6 +994,9 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       transcript: transcript ?? this.transcript,
       aiAnalysis: aiAnalysis ?? this.aiAnalysis,
       chwNotes: chwNotes ?? this.chwNotes,
+      asrSource: asrSource ?? this.asrSource,
+      benchmarkSyncStatus: benchmarkSyncStatus ?? this.benchmarkSyncStatus,
+      languageCode: languageCode ?? this.languageCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -905,6 +1026,16 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     if (chwNotes.present) {
       map['chw_notes'] = Variable<String>(chwNotes.value);
     }
+    if (asrSource.present) {
+      map['asr_source'] = Variable<String>(asrSource.value);
+    }
+    if (benchmarkSyncStatus.present) {
+      map['benchmark_sync_status'] =
+          Variable<String>(benchmarkSyncStatus.value);
+    }
+    if (languageCode.present) {
+      map['language_code'] = Variable<String>(languageCode.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -924,8 +1055,512 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
           ..write('transcript: $transcript, ')
           ..write('aiAnalysis: $aiAnalysis, ')
           ..write('chwNotes: $chwNotes, ')
+          ..write('asrSource: $asrSource, ')
+          ..write('benchmarkSyncStatus: $benchmarkSyncStatus, ')
+          ..write('languageCode: $languageCode, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TranscriptionsTable extends Transcriptions
+    with TableInfo<$TranscriptionsTable, Transcription> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TranscriptionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _visitIdMeta =
+      const VerificationMeta('visitId');
+  @override
+  late final GeneratedColumn<int> visitId = GeneratedColumn<int>(
+      'visit_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES visits (id)'));
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+      'source', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _transcriptMeta =
+      const VerificationMeta('transcript');
+  @override
+  late final GeneratedColumn<String> transcript = GeneratedColumn<String>(
+      'transcript', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _languageCodeMeta =
+      const VerificationMeta('languageCode');
+  @override
+  late final GeneratedColumn<String> languageCode = GeneratedColumn<String>(
+      'language_code', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+      'completed_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _processingLatencyMsMeta =
+      const VerificationMeta('processingLatencyMs');
+  @override
+  late final GeneratedColumn<int> processingLatencyMs = GeneratedColumn<int>(
+      'processing_latency_ms', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _errorMessageMeta =
+      const VerificationMeta('errorMessage');
+  @override
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
+      'error_message', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _usedForClinicalPipelineMeta =
+      const VerificationMeta('usedForClinicalPipeline');
+  @override
+  late final GeneratedColumn<bool> usedForClinicalPipeline =
+      GeneratedColumn<bool>('used_for_clinical_pipeline', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'CHECK ("used_for_clinical_pipeline" IN (0, 1))'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        visitId,
+        source,
+        transcript,
+        languageCode,
+        completedAt,
+        processingLatencyMs,
+        errorMessage,
+        usedForClinicalPipeline
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transcriptions';
+  @override
+  VerificationContext validateIntegrity(Insertable<Transcription> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('visit_id')) {
+      context.handle(_visitIdMeta,
+          visitId.isAcceptableOrUnknown(data['visit_id']!, _visitIdMeta));
+    } else if (isInserting) {
+      context.missing(_visitIdMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(_sourceMeta,
+          source.isAcceptableOrUnknown(data['source']!, _sourceMeta));
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('transcript')) {
+      context.handle(
+          _transcriptMeta,
+          transcript.isAcceptableOrUnknown(
+              data['transcript']!, _transcriptMeta));
+    } else if (isInserting) {
+      context.missing(_transcriptMeta);
+    }
+    if (data.containsKey('language_code')) {
+      context.handle(
+          _languageCodeMeta,
+          languageCode.isAcceptableOrUnknown(
+              data['language_code']!, _languageCodeMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
+    } else if (isInserting) {
+      context.missing(_completedAtMeta);
+    }
+    if (data.containsKey('processing_latency_ms')) {
+      context.handle(
+          _processingLatencyMsMeta,
+          processingLatencyMs.isAcceptableOrUnknown(
+              data['processing_latency_ms']!, _processingLatencyMsMeta));
+    }
+    if (data.containsKey('error_message')) {
+      context.handle(
+          _errorMessageMeta,
+          errorMessage.isAcceptableOrUnknown(
+              data['error_message']!, _errorMessageMeta));
+    }
+    if (data.containsKey('used_for_clinical_pipeline')) {
+      context.handle(
+          _usedForClinicalPipelineMeta,
+          usedForClinicalPipeline.isAcceptableOrUnknown(
+              data['used_for_clinical_pipeline']!,
+              _usedForClinicalPipelineMeta));
+    } else if (isInserting) {
+      context.missing(_usedForClinicalPipelineMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Transcription map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Transcription(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      visitId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}visit_id'])!,
+      source: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source'])!,
+      transcript: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}transcript'])!,
+      languageCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}language_code']),
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at'])!,
+      processingLatencyMs: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}processing_latency_ms']),
+      errorMessage: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error_message']),
+      usedForClinicalPipeline: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool,
+          data['${effectivePrefix}used_for_clinical_pipeline'])!,
+    );
+  }
+
+  @override
+  $TranscriptionsTable createAlias(String alias) {
+    return $TranscriptionsTable(attachedDatabase, alias);
+  }
+}
+
+class Transcription extends DataClass implements Insertable<Transcription> {
+  final int id;
+  final int visitId;
+  final String source;
+  final String transcript;
+  final String? languageCode;
+  final DateTime completedAt;
+  final int? processingLatencyMs;
+  final String? errorMessage;
+  final bool usedForClinicalPipeline;
+  const Transcription(
+      {required this.id,
+      required this.visitId,
+      required this.source,
+      required this.transcript,
+      this.languageCode,
+      required this.completedAt,
+      this.processingLatencyMs,
+      this.errorMessage,
+      required this.usedForClinicalPipeline});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['visit_id'] = Variable<int>(visitId);
+    map['source'] = Variable<String>(source);
+    map['transcript'] = Variable<String>(transcript);
+    if (!nullToAbsent || languageCode != null) {
+      map['language_code'] = Variable<String>(languageCode);
+    }
+    map['completed_at'] = Variable<DateTime>(completedAt);
+    if (!nullToAbsent || processingLatencyMs != null) {
+      map['processing_latency_ms'] = Variable<int>(processingLatencyMs);
+    }
+    if (!nullToAbsent || errorMessage != null) {
+      map['error_message'] = Variable<String>(errorMessage);
+    }
+    map['used_for_clinical_pipeline'] = Variable<bool>(usedForClinicalPipeline);
+    return map;
+  }
+
+  TranscriptionsCompanion toCompanion(bool nullToAbsent) {
+    return TranscriptionsCompanion(
+      id: Value(id),
+      visitId: Value(visitId),
+      source: Value(source),
+      transcript: Value(transcript),
+      languageCode: languageCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(languageCode),
+      completedAt: Value(completedAt),
+      processingLatencyMs: processingLatencyMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(processingLatencyMs),
+      errorMessage: errorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorMessage),
+      usedForClinicalPipeline: Value(usedForClinicalPipeline),
+    );
+  }
+
+  factory Transcription.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Transcription(
+      id: serializer.fromJson<int>(json['id']),
+      visitId: serializer.fromJson<int>(json['visitId']),
+      source: serializer.fromJson<String>(json['source']),
+      transcript: serializer.fromJson<String>(json['transcript']),
+      languageCode: serializer.fromJson<String?>(json['languageCode']),
+      completedAt: serializer.fromJson<DateTime>(json['completedAt']),
+      processingLatencyMs:
+          serializer.fromJson<int?>(json['processingLatencyMs']),
+      errorMessage: serializer.fromJson<String?>(json['errorMessage']),
+      usedForClinicalPipeline:
+          serializer.fromJson<bool>(json['usedForClinicalPipeline']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'visitId': serializer.toJson<int>(visitId),
+      'source': serializer.toJson<String>(source),
+      'transcript': serializer.toJson<String>(transcript),
+      'languageCode': serializer.toJson<String?>(languageCode),
+      'completedAt': serializer.toJson<DateTime>(completedAt),
+      'processingLatencyMs': serializer.toJson<int?>(processingLatencyMs),
+      'errorMessage': serializer.toJson<String?>(errorMessage),
+      'usedForClinicalPipeline':
+          serializer.toJson<bool>(usedForClinicalPipeline),
+    };
+  }
+
+  Transcription copyWith(
+          {int? id,
+          int? visitId,
+          String? source,
+          String? transcript,
+          Value<String?> languageCode = const Value.absent(),
+          DateTime? completedAt,
+          Value<int?> processingLatencyMs = const Value.absent(),
+          Value<String?> errorMessage = const Value.absent(),
+          bool? usedForClinicalPipeline}) =>
+      Transcription(
+        id: id ?? this.id,
+        visitId: visitId ?? this.visitId,
+        source: source ?? this.source,
+        transcript: transcript ?? this.transcript,
+        languageCode:
+            languageCode.present ? languageCode.value : this.languageCode,
+        completedAt: completedAt ?? this.completedAt,
+        processingLatencyMs: processingLatencyMs.present
+            ? processingLatencyMs.value
+            : this.processingLatencyMs,
+        errorMessage:
+            errorMessage.present ? errorMessage.value : this.errorMessage,
+        usedForClinicalPipeline:
+            usedForClinicalPipeline ?? this.usedForClinicalPipeline,
+      );
+  Transcription copyWithCompanion(TranscriptionsCompanion data) {
+    return Transcription(
+      id: data.id.present ? data.id.value : this.id,
+      visitId: data.visitId.present ? data.visitId.value : this.visitId,
+      source: data.source.present ? data.source.value : this.source,
+      transcript:
+          data.transcript.present ? data.transcript.value : this.transcript,
+      languageCode: data.languageCode.present
+          ? data.languageCode.value
+          : this.languageCode,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+      processingLatencyMs: data.processingLatencyMs.present
+          ? data.processingLatencyMs.value
+          : this.processingLatencyMs,
+      errorMessage: data.errorMessage.present
+          ? data.errorMessage.value
+          : this.errorMessage,
+      usedForClinicalPipeline: data.usedForClinicalPipeline.present
+          ? data.usedForClinicalPipeline.value
+          : this.usedForClinicalPipeline,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Transcription(')
+          ..write('id: $id, ')
+          ..write('visitId: $visitId, ')
+          ..write('source: $source, ')
+          ..write('transcript: $transcript, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('processingLatencyMs: $processingLatencyMs, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('usedForClinicalPipeline: $usedForClinicalPipeline')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, visitId, source, transcript, languageCode,
+      completedAt, processingLatencyMs, errorMessage, usedForClinicalPipeline);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Transcription &&
+          other.id == this.id &&
+          other.visitId == this.visitId &&
+          other.source == this.source &&
+          other.transcript == this.transcript &&
+          other.languageCode == this.languageCode &&
+          other.completedAt == this.completedAt &&
+          other.processingLatencyMs == this.processingLatencyMs &&
+          other.errorMessage == this.errorMessage &&
+          other.usedForClinicalPipeline == this.usedForClinicalPipeline);
+}
+
+class TranscriptionsCompanion extends UpdateCompanion<Transcription> {
+  final Value<int> id;
+  final Value<int> visitId;
+  final Value<String> source;
+  final Value<String> transcript;
+  final Value<String?> languageCode;
+  final Value<DateTime> completedAt;
+  final Value<int?> processingLatencyMs;
+  final Value<String?> errorMessage;
+  final Value<bool> usedForClinicalPipeline;
+  const TranscriptionsCompanion({
+    this.id = const Value.absent(),
+    this.visitId = const Value.absent(),
+    this.source = const Value.absent(),
+    this.transcript = const Value.absent(),
+    this.languageCode = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.processingLatencyMs = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+    this.usedForClinicalPipeline = const Value.absent(),
+  });
+  TranscriptionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int visitId,
+    required String source,
+    required String transcript,
+    this.languageCode = const Value.absent(),
+    required DateTime completedAt,
+    this.processingLatencyMs = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+    required bool usedForClinicalPipeline,
+  })  : visitId = Value(visitId),
+        source = Value(source),
+        transcript = Value(transcript),
+        completedAt = Value(completedAt),
+        usedForClinicalPipeline = Value(usedForClinicalPipeline);
+  static Insertable<Transcription> custom({
+    Expression<int>? id,
+    Expression<int>? visitId,
+    Expression<String>? source,
+    Expression<String>? transcript,
+    Expression<String>? languageCode,
+    Expression<DateTime>? completedAt,
+    Expression<int>? processingLatencyMs,
+    Expression<String>? errorMessage,
+    Expression<bool>? usedForClinicalPipeline,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (visitId != null) 'visit_id': visitId,
+      if (source != null) 'source': source,
+      if (transcript != null) 'transcript': transcript,
+      if (languageCode != null) 'language_code': languageCode,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (processingLatencyMs != null)
+        'processing_latency_ms': processingLatencyMs,
+      if (errorMessage != null) 'error_message': errorMessage,
+      if (usedForClinicalPipeline != null)
+        'used_for_clinical_pipeline': usedForClinicalPipeline,
+    });
+  }
+
+  TranscriptionsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? visitId,
+      Value<String>? source,
+      Value<String>? transcript,
+      Value<String?>? languageCode,
+      Value<DateTime>? completedAt,
+      Value<int?>? processingLatencyMs,
+      Value<String?>? errorMessage,
+      Value<bool>? usedForClinicalPipeline}) {
+    return TranscriptionsCompanion(
+      id: id ?? this.id,
+      visitId: visitId ?? this.visitId,
+      source: source ?? this.source,
+      transcript: transcript ?? this.transcript,
+      languageCode: languageCode ?? this.languageCode,
+      completedAt: completedAt ?? this.completedAt,
+      processingLatencyMs: processingLatencyMs ?? this.processingLatencyMs,
+      errorMessage: errorMessage ?? this.errorMessage,
+      usedForClinicalPipeline:
+          usedForClinicalPipeline ?? this.usedForClinicalPipeline,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (visitId.present) {
+      map['visit_id'] = Variable<int>(visitId.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (transcript.present) {
+      map['transcript'] = Variable<String>(transcript.value);
+    }
+    if (languageCode.present) {
+      map['language_code'] = Variable<String>(languageCode.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (processingLatencyMs.present) {
+      map['processing_latency_ms'] = Variable<int>(processingLatencyMs.value);
+    }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
+    if (usedForClinicalPipeline.present) {
+      map['used_for_clinical_pipeline'] =
+          Variable<bool>(usedForClinicalPipeline.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TranscriptionsCompanion(')
+          ..write('id: $id, ')
+          ..write('visitId: $visitId, ')
+          ..write('source: $source, ')
+          ..write('transcript: $transcript, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('processingLatencyMs: $processingLatencyMs, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('usedForClinicalPipeline: $usedForClinicalPipeline')
           ..write(')'))
         .toString();
   }
@@ -936,11 +1571,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $PatientsTable patients = $PatientsTable(this);
   late final $VisitsTable visits = $VisitsTable(this);
+  late final $TranscriptionsTable transcriptions = $TranscriptionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [patients, visits];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [patients, visits, transcriptions];
 }
 
 typedef $$PatientsTableCreateCompanionBuilder = PatientsCompanion Function({
@@ -1253,6 +1890,9 @@ typedef $$VisitsTableCreateCompanionBuilder = VisitsCompanion Function({
   Value<String?> transcript,
   Value<String?> aiAnalysis,
   Value<String?> chwNotes,
+  Value<String> asrSource,
+  Value<String> benchmarkSyncStatus,
+  Value<String> languageCode,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
 });
@@ -1264,6 +1904,9 @@ typedef $$VisitsTableUpdateCompanionBuilder = VisitsCompanion Function({
   Value<String?> transcript,
   Value<String?> aiAnalysis,
   Value<String?> chwNotes,
+  Value<String> asrSource,
+  Value<String> benchmarkSyncStatus,
+  Value<String> languageCode,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
 });
@@ -1276,12 +1919,28 @@ final class $$VisitsTableReferences
       .createAlias($_aliasNameGenerator(db.visits.patientId, db.patients.id));
 
   $$PatientsTableProcessedTableManager? get patientId {
+    if ($_item.patientId == null) return null;
     final manager = $$PatientsTableTableManager($_db, $_db.patients)
-        .filter((f) => f.id($_item.patientId));
+        .filter((f) => f.id($_item.patientId!));
     final item = $_typedResult.readTableOrNull(_patientIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$TranscriptionsTable, List<Transcription>>
+      _transcriptionsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.transcriptions,
+              aliasName: $_aliasNameGenerator(
+                  db.visits.id, db.transcriptions.visitId));
+
+  $$TranscriptionsTableProcessedTableManager get transcriptionsRefs {
+    final manager = $$TranscriptionsTableTableManager($_db, $_db.transcriptions)
+        .filter((f) => f.visitId.id($_item.id));
+
+    final cache = $_typedResult.readTableOrNull(_transcriptionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -1312,6 +1971,16 @@ class $$VisitsTableFilterComposer
   ColumnFilters<String> get chwNotes => $composableBuilder(
       column: $table.chwNotes, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get asrSource => $composableBuilder(
+      column: $table.asrSource, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get benchmarkSyncStatus => $composableBuilder(
+      column: $table.benchmarkSyncStatus,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
@@ -1336,6 +2005,27 @@ class $$VisitsTableFilterComposer
                   $removeJoinBuilderFromRootComposer,
             ));
     return composer;
+  }
+
+  Expression<bool> transcriptionsRefs(
+      Expression<bool> Function($$TranscriptionsTableFilterComposer f) f) {
+    final $$TranscriptionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transcriptions,
+        getReferencedColumn: (t) => t.visitId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TranscriptionsTableFilterComposer(
+              $db: $db,
+              $table: $db.transcriptions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
   }
 }
 
@@ -1365,6 +2055,17 @@ class $$VisitsTableOrderingComposer
 
   ColumnOrderings<String> get chwNotes => $composableBuilder(
       column: $table.chwNotes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get asrSource => $composableBuilder(
+      column: $table.asrSource, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get benchmarkSyncStatus => $composableBuilder(
+      column: $table.benchmarkSyncStatus,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get languageCode => $composableBuilder(
+      column: $table.languageCode,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
@@ -1420,6 +2121,15 @@ class $$VisitsTableAnnotationComposer
   GeneratedColumn<String> get chwNotes =>
       $composableBuilder(column: $table.chwNotes, builder: (column) => column);
 
+  GeneratedColumn<String> get asrSource =>
+      $composableBuilder(column: $table.asrSource, builder: (column) => column);
+
+  GeneratedColumn<String> get benchmarkSyncStatus => $composableBuilder(
+      column: $table.benchmarkSyncStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -1445,6 +2155,27 @@ class $$VisitsTableAnnotationComposer
             ));
     return composer;
   }
+
+  Expression<T> transcriptionsRefs<T extends Object>(
+      Expression<T> Function($$TranscriptionsTableAnnotationComposer a) f) {
+    final $$TranscriptionsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transcriptions,
+        getReferencedColumn: (t) => t.visitId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TranscriptionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transcriptions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$VisitsTableTableManager extends RootTableManager<
@@ -1458,7 +2189,7 @@ class $$VisitsTableTableManager extends RootTableManager<
     $$VisitsTableUpdateCompanionBuilder,
     (Visit, $$VisitsTableReferences),
     Visit,
-    PrefetchHooks Function({bool patientId})> {
+    PrefetchHooks Function({bool patientId, bool transcriptionsRefs})> {
   $$VisitsTableTableManager(_$AppDatabase db, $VisitsTable table)
       : super(TableManagerState(
           db: db,
@@ -1477,6 +2208,9 @@ class $$VisitsTableTableManager extends RootTableManager<
             Value<String?> transcript = const Value.absent(),
             Value<String?> aiAnalysis = const Value.absent(),
             Value<String?> chwNotes = const Value.absent(),
+            Value<String> asrSource = const Value.absent(),
+            Value<String> benchmarkSyncStatus = const Value.absent(),
+            Value<String> languageCode = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
@@ -1488,6 +2222,9 @@ class $$VisitsTableTableManager extends RootTableManager<
             transcript: transcript,
             aiAnalysis: aiAnalysis,
             chwNotes: chwNotes,
+            asrSource: asrSource,
+            benchmarkSyncStatus: benchmarkSyncStatus,
+            languageCode: languageCode,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
@@ -1499,6 +2236,9 @@ class $$VisitsTableTableManager extends RootTableManager<
             Value<String?> transcript = const Value.absent(),
             Value<String?> aiAnalysis = const Value.absent(),
             Value<String?> chwNotes = const Value.absent(),
+            Value<String> asrSource = const Value.absent(),
+            Value<String> benchmarkSyncStatus = const Value.absent(),
+            Value<String> languageCode = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
@@ -1510,6 +2250,9 @@ class $$VisitsTableTableManager extends RootTableManager<
             transcript: transcript,
             aiAnalysis: aiAnalysis,
             chwNotes: chwNotes,
+            asrSource: asrSource,
+            benchmarkSyncStatus: benchmarkSyncStatus,
+            languageCode: languageCode,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
@@ -1517,10 +2260,13 @@ class $$VisitsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$VisitsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({patientId = false}) {
+          prefetchHooksCallback: (
+              {patientId = false, transcriptionsRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [],
+              explicitlyWatchedTables: [
+                if (transcriptionsRefs) db.transcriptions
+              ],
               addJoins: <
                   T extends TableManagerState<
                       dynamic,
@@ -1548,7 +2294,20 @@ class $$VisitsTableTableManager extends RootTableManager<
                 return state;
               },
               getPrefetchedDataCallback: (items) async {
-                return [];
+                return [
+                  if (transcriptionsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$VisitsTableReferences
+                            ._transcriptionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$VisitsTableReferences(db, table, p0)
+                                .transcriptionsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.visitId == item.id),
+                        typedResults: items)
+                ];
               },
             );
           },
@@ -1566,7 +2325,342 @@ typedef $$VisitsTableProcessedTableManager = ProcessedTableManager<
     $$VisitsTableUpdateCompanionBuilder,
     (Visit, $$VisitsTableReferences),
     Visit,
-    PrefetchHooks Function({bool patientId})>;
+    PrefetchHooks Function({bool patientId, bool transcriptionsRefs})>;
+typedef $$TranscriptionsTableCreateCompanionBuilder = TranscriptionsCompanion
+    Function({
+  Value<int> id,
+  required int visitId,
+  required String source,
+  required String transcript,
+  Value<String?> languageCode,
+  required DateTime completedAt,
+  Value<int?> processingLatencyMs,
+  Value<String?> errorMessage,
+  required bool usedForClinicalPipeline,
+});
+typedef $$TranscriptionsTableUpdateCompanionBuilder = TranscriptionsCompanion
+    Function({
+  Value<int> id,
+  Value<int> visitId,
+  Value<String> source,
+  Value<String> transcript,
+  Value<String?> languageCode,
+  Value<DateTime> completedAt,
+  Value<int?> processingLatencyMs,
+  Value<String?> errorMessage,
+  Value<bool> usedForClinicalPipeline,
+});
+
+final class $$TranscriptionsTableReferences
+    extends BaseReferences<_$AppDatabase, $TranscriptionsTable, Transcription> {
+  $$TranscriptionsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $VisitsTable _visitIdTable(_$AppDatabase db) => db.visits.createAlias(
+      $_aliasNameGenerator(db.transcriptions.visitId, db.visits.id));
+
+  $$VisitsTableProcessedTableManager? get visitId {
+    if ($_item.visitId == null) return null;
+    final manager = $$VisitsTableTableManager($_db, $_db.visits)
+        .filter((f) => f.id($_item.visitId!));
+    final item = $_typedResult.readTableOrNull(_visitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$TranscriptionsTableFilterComposer
+    extends Composer<_$AppDatabase, $TranscriptionsTable> {
+  $$TranscriptionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get transcript => $composableBuilder(
+      column: $table.transcript, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get processingLatencyMs => $composableBuilder(
+      column: $table.processingLatencyMs,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get errorMessage => $composableBuilder(
+      column: $table.errorMessage, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get usedForClinicalPipeline => $composableBuilder(
+      column: $table.usedForClinicalPipeline,
+      builder: (column) => ColumnFilters(column));
+
+  $$VisitsTableFilterComposer get visitId {
+    final $$VisitsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.visitId,
+        referencedTable: $db.visits,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$VisitsTableFilterComposer(
+              $db: $db,
+              $table: $db.visits,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TranscriptionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TranscriptionsTable> {
+  $$TranscriptionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get transcript => $composableBuilder(
+      column: $table.transcript, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get languageCode => $composableBuilder(
+      column: $table.languageCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get processingLatencyMs => $composableBuilder(
+      column: $table.processingLatencyMs,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get errorMessage => $composableBuilder(
+      column: $table.errorMessage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get usedForClinicalPipeline => $composableBuilder(
+      column: $table.usedForClinicalPipeline,
+      builder: (column) => ColumnOrderings(column));
+
+  $$VisitsTableOrderingComposer get visitId {
+    final $$VisitsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.visitId,
+        referencedTable: $db.visits,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$VisitsTableOrderingComposer(
+              $db: $db,
+              $table: $db.visits,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TranscriptionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TranscriptionsTable> {
+  $$TranscriptionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get transcript => $composableBuilder(
+      column: $table.transcript, builder: (column) => column);
+
+  GeneratedColumn<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get processingLatencyMs => $composableBuilder(
+      column: $table.processingLatencyMs, builder: (column) => column);
+
+  GeneratedColumn<String> get errorMessage => $composableBuilder(
+      column: $table.errorMessage, builder: (column) => column);
+
+  GeneratedColumn<bool> get usedForClinicalPipeline => $composableBuilder(
+      column: $table.usedForClinicalPipeline, builder: (column) => column);
+
+  $$VisitsTableAnnotationComposer get visitId {
+    final $$VisitsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.visitId,
+        referencedTable: $db.visits,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$VisitsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.visits,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TranscriptionsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TranscriptionsTable,
+    Transcription,
+    $$TranscriptionsTableFilterComposer,
+    $$TranscriptionsTableOrderingComposer,
+    $$TranscriptionsTableAnnotationComposer,
+    $$TranscriptionsTableCreateCompanionBuilder,
+    $$TranscriptionsTableUpdateCompanionBuilder,
+    (Transcription, $$TranscriptionsTableReferences),
+    Transcription,
+    PrefetchHooks Function({bool visitId})> {
+  $$TranscriptionsTableTableManager(
+      _$AppDatabase db, $TranscriptionsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TranscriptionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TranscriptionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TranscriptionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> visitId = const Value.absent(),
+            Value<String> source = const Value.absent(),
+            Value<String> transcript = const Value.absent(),
+            Value<String?> languageCode = const Value.absent(),
+            Value<DateTime> completedAt = const Value.absent(),
+            Value<int?> processingLatencyMs = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            Value<bool> usedForClinicalPipeline = const Value.absent(),
+          }) =>
+              TranscriptionsCompanion(
+            id: id,
+            visitId: visitId,
+            source: source,
+            transcript: transcript,
+            languageCode: languageCode,
+            completedAt: completedAt,
+            processingLatencyMs: processingLatencyMs,
+            errorMessage: errorMessage,
+            usedForClinicalPipeline: usedForClinicalPipeline,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int visitId,
+            required String source,
+            required String transcript,
+            Value<String?> languageCode = const Value.absent(),
+            required DateTime completedAt,
+            Value<int?> processingLatencyMs = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            required bool usedForClinicalPipeline,
+          }) =>
+              TranscriptionsCompanion.insert(
+            id: id,
+            visitId: visitId,
+            source: source,
+            transcript: transcript,
+            languageCode: languageCode,
+            completedAt: completedAt,
+            processingLatencyMs: processingLatencyMs,
+            errorMessage: errorMessage,
+            usedForClinicalPipeline: usedForClinicalPipeline,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$TranscriptionsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({visitId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (visitId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.visitId,
+                    referencedTable:
+                        $$TranscriptionsTableReferences._visitIdTable(db),
+                    referencedColumn:
+                        $$TranscriptionsTableReferences._visitIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TranscriptionsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TranscriptionsTable,
+    Transcription,
+    $$TranscriptionsTableFilterComposer,
+    $$TranscriptionsTableOrderingComposer,
+    $$TranscriptionsTableAnnotationComposer,
+    $$TranscriptionsTableCreateCompanionBuilder,
+    $$TranscriptionsTableUpdateCompanionBuilder,
+    (Transcription, $$TranscriptionsTableReferences),
+    Transcription,
+    PrefetchHooks Function({bool visitId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1575,4 +2669,6 @@ class $AppDatabaseManager {
       $$PatientsTableTableManager(_db, _db.patients);
   $$VisitsTableTableManager get visits =>
       $$VisitsTableTableManager(_db, _db.visits);
+  $$TranscriptionsTableTableManager get transcriptions =>
+      $$TranscriptionsTableTableManager(_db, _db.transcriptions);
 }

@@ -28,16 +28,47 @@ class Visits extends Table {
   TextColumn get transcript => text().nullable()();
   TextColumn get aiAnalysis => text().nullable()();
   TextColumn get chwNotes => text().nullable()();
+  TextColumn get asrSource =>
+      text().withDefault(const Constant('sherpa_local'))();
+  TextColumn get benchmarkSyncStatus =>
+      text().withDefault(const Constant('pending_benchmark_reupload'))();
+  TextColumn get languageCode => text().withDefault(const Constant('sw'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-@DriftDatabase(tables: [Patients, Visits])
+class Transcriptions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get visitId => integer().references(Visits, #id)();
+  TextColumn get source => text()();
+  TextColumn get transcript => text()();
+  TextColumn get languageCode => text().nullable()();
+  DateTimeColumn get completedAt => dateTime()();
+  IntColumn get processingLatencyMs => integer().nullable()();
+  TextColumn get errorMessage => text().nullable()();
+  BoolColumn get usedForClinicalPipeline => boolean()();
+}
+
+@DriftDatabase(tables: [Patients, Visits, Transcriptions])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          await m.addColumn(visits, visits.asrSource);
+          await m.addColumn(visits, visits.benchmarkSyncStatus);
+          await m.addColumn(visits, visits.languageCode);
+          await m.createTable(transcriptions);
+        }
+      },
+    );
+  }
 }
 
 LazyDatabase _openConnection() {

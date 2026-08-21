@@ -7,10 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:olu_ai/core/database/database.dart';
 import 'package:olu_ai/core/theme/app_theme.dart';
 import 'package:olu_ai/features/visits/application/audio_recorder_service.dart';
-import 'package:olu_ai/features/visits/application/transcription_service.dart';
 import 'package:olu_ai/features/visits/application/llm_service.dart';
 import 'package:olu_ai/features/visits/application/tts_service.dart';
 import 'package:olu_ai/features/visits/data/visit_repository.dart';
+import 'package:olu_ai/services/asr_router.dart';
 
 class ActiveVisitScreen extends ConsumerStatefulWidget {
   final int patientId;
@@ -23,12 +23,15 @@ class ActiveVisitScreen extends ConsumerStatefulWidget {
 
 class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
     with TickerProviderStateMixin {
+  static const _saharaApiKey = String.fromEnvironment('SAHARA_API_KEY');
+
   bool _isRecording = false;
   String _transcript = "";
   String? _audioPath;
   String? _aiAnalysis;
   String _liveGuidance = "";
   String _lastSpokenGuidance = "";
+  AsrSession? _asrSession;
   StreamSubscription? _transcriptionSubscription;
   Timer? _guidanceTimer;
   Timer? _durationTimer;
@@ -51,6 +54,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
 
   @override
   void dispose() {
+    unawaited(_asrSession?.stop() ?? Future.value());
     _transcriptionSubscription?.cancel();
     _guidanceTimer?.cancel();
     _durationTimer?.cancel();
@@ -97,7 +101,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
   @override
   Widget build(BuildContext context) {
     final recorder = ref.watch(audioRecorderServiceProvider);
-    final transcriber = ref.watch(transcriptionServiceProvider);
+    final asrRouter = ref.watch(asrRouterProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -257,8 +261,8 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                             .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: theme.colorScheme.outline
-                              .withValues(alpha: 0.3),
+                          color:
+                              theme.colorScheme.outline.withValues(alpha: 0.3),
                           width: 0.5,
                         ),
                       ),
@@ -295,8 +299,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                     animation: _pulseAnimation,
                     builder: (context, child) {
                       return Transform.scale(
-                        scale:
-                            _isRecording ? _pulseAnimation.value : 1.0,
+                        scale: _isRecording ? _pulseAnimation.value : 1.0,
                         child: child,
                       );
                     },
@@ -335,9 +338,12 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                               if (_isRecording) {
                                 _pulseController.stop();
                                 _durationTimer?.cancel();
-                                await _transcriptionSubscription?.cancel();
                                 _guidanceTimer?.cancel();
                                 final path = await recorder.stopRecording();
+                                await _asrSession?.stop();
+                                _asrSession = null;
+                                await _transcriptionSubscription?.cancel();
+                                _transcriptionSubscription = null;
                                 await ref.read(ttsServiceProvider).stop();
                                 setState(() {
                                   _isRecording = false;
@@ -356,11 +362,18 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
 
                                 final audioStream =
                                     await recorder.startAudioStream(path);
-                                final transcriptStream =
-                                    transcriber.transcribeStream(audioStream);
+                                final asrSession =
+                                    await asrRouter.startEncounter(
+                                  audioStream: audioStream,
+                                  saharaApiKey: _saharaApiKey.isEmpty
+                                      ? null
+                                      : _saharaApiKey,
+                                  languageCode: 'sw',
+                                );
+                                _asrSession = asrSession;
 
                                 _transcriptionSubscription =
-                                    transcriptStream.listen((text) {
+                                    asrSession.transcriptText.listen((text) {
                                   if (mounted) {
                                     setState(() {
                                       _transcript = text;
@@ -526,8 +539,8 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                             .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: theme.colorScheme.outline
-                              .withValues(alpha: 0.3),
+                          color:
+                              theme.colorScheme.outline.withValues(alpha: 0.3),
                           width: 0.5,
                         ),
                       ),
@@ -547,8 +560,8 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                       height: 54,
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          final repository = await ref
-                              .read(visitRepositoryProvider.future);
+                          final repository =
+                              await ref.read(visitRepositoryProvider.future);
 
                           await repository.addVisit(VisitsCompanion.insert(
                             patientId: widget.patientId,
@@ -562,8 +575,7 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
                             context.pop(); // Go back to patient list
                           }
                         },
-                        icon: const Icon(
-                            Icons.check_circle_outline_rounded,
+                        icon: const Icon(Icons.check_circle_outline_rounded,
                             size: 20),
                         label: const Text('Save Visit'),
                       ),
@@ -635,9 +647,8 @@ class _ActiveVisitScreenState extends ConsumerState<ActiveVisitScreen>
 
       // Find the next tag to stop at
       final nextTagIndex = remaining.indexOf(RegExp(r'[A-Z ]+:'));
-      final content = nextTagIndex != -1
-          ? remaining.substring(0, nextTagIndex)
-          : remaining;
+      final content =
+          nextTagIndex != -1 ? remaining.substring(0, nextTagIndex) : remaining;
 
       return content.trim();
     } catch (e) {

@@ -44,7 +44,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-*.html linguist-detectable=false
-
 /.env
 /models/
